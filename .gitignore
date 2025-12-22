@@ -10,6 +10,7 @@ vendor/
 # FTP configuration (contains sensitive data)
 frontend/ftp-config.json
 backend/ftp-config.json
+secrets/ftp.json
 
 # Build outputs
 frontend/dist/

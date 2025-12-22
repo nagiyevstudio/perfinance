@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     // Автоматическая загрузка на FTP после билда
-    vitePluginFtp('./ftp-config.json'),
+    vitePluginFtp('../secrets/ftp.json'),
   ],
   resolve: {
     alias: {

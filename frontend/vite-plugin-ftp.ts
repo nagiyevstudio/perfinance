@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
 
-// Динамический импорт для CommonJS модуля в ESM окружении
+// Р”РёРЅР°РјРёС‡РµСЃРєРёР№ РёРјРїРѕСЂС‚ РґР»СЏ CommonJS РјРѕРґСѓР»СЏ РІ ESM РѕРєСЂСѓР¶РµРЅРёРё
 const require = createRequire(import.meta.url);
 const FtpDeploy = require('ftp-deploy');
 
@@ -25,6 +25,11 @@ interface FtpConfig {
   };
 }
 
+interface FtpConfigBundle {
+  frontend?: FtpConfig;
+  backend?: FtpConfig;
+}
+
 export function vitePluginFtp(configPath: string = './ftp-config.json'): Plugin {
   return {
     name: 'vite-plugin-ftp',
@@ -35,15 +40,21 @@ export function vitePluginFtp(configPath: string = './ftp-config.json'): Plugin 
         const configFile = path.resolve(process.cwd(), configPath);
         
         if (!fs.existsSync(configFile)) {
-          console.warn(`⚠️  FTP config file not found: ${configPath}. Skipping FTP upload.`);
+          console.warn(`вљ пёЏ  FTP config file not found: ${configPath}. Skipping FTP upload.`);
           return;
         }
 
         try {
-          const config: FtpConfig = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+          const rawConfig: FtpConfig | FtpConfigBundle = JSON.parse(
+            fs.readFileSync(configFile, 'utf-8')
+          );
+          const config =
+            typeof rawConfig === 'object' && rawConfig && 'frontend' in rawConfig && rawConfig.frontend
+              ? rawConfig.frontend
+              : (rawConfig as FtpConfig);
           
           if (!config.host || !config.user || !config.password) {
-            console.warn('⚠️  FTP config is incomplete. Skipping FTP upload.');
+            console.warn('вљ пёЏ  FTP config is incomplete. Skipping FTP upload.');
             return;
           }
 
@@ -63,7 +74,7 @@ export function vitePluginFtp(configPath: string = './ftp-config.json'): Plugin 
             sftp: config.sftp || false,
           };
 
-          // Добавляем поддержку FTPS (FTP over SSL)
+          // Р”РѕР±Р°РІР»СЏРµРј РїРѕРґРґРµСЂР¶РєСѓ FTPS (FTP over SSL)
           if (config.secure) {
             deployConfig.secure = true;
             if (config.secureOptions) {
@@ -71,18 +82,18 @@ export function vitePluginFtp(configPath: string = './ftp-config.json'): Plugin 
             }
           }
 
-          console.log('🚀 Starting FTP upload...');
+          console.log('рџљЂ Starting FTP upload...');
           
           try {
             const res = await ftpDeploy.deploy(deployConfig);
-            console.log('✅ FTP upload completed successfully!');
-            console.log(`📤 Uploaded ${res.length} files`);
+            console.log('вњ… FTP upload completed successfully!');
+            console.log(`рџ“¤ Uploaded ${res.length} files`);
           } catch (err) {
-            console.error('❌ FTP upload failed:', err);
+            console.error('вќЊ FTP upload failed:', err);
             process.exit(1);
           }
         } catch (error) {
-          console.error('❌ Error reading FTP config:', error);
+          console.error('вќЊ Error reading FTP config:', error);
         }
       },
     },

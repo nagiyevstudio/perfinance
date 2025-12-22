@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Operation } from "../../services/api";
-import { formatCurrency, formatDateTime } from "../../utils/format";
+import { formatCurrency, formatCurrencyParts, formatDateTime } from "../../utils/format";
 import MaterialIcon from "../common/MaterialIcon";
 
 interface OperationsListProps {
@@ -47,6 +47,27 @@ export default function OperationsList({
     }
     const sign = amountMinor > 0 ? "+" : "-";
     return `${sign}${formatCurrency(Math.abs(amountMinor))}`;
+  };
+
+  const renderOperationAmount = (amountMinor: number, type: Operation["type"]) => {
+    const sign = type === "expense" ? "-" : "+";
+    const parts = formatCurrencyParts(Math.abs(amountMinor));
+
+    return (
+      <>
+        <span className="text-[1.85rem] font-semibold">
+          {sign}
+          {parts.integer}
+        </span>
+        <span className="text-[1.1rem] font-light opacity-70">
+          {parts.decimal}
+          {parts.fraction}
+        </span>
+        {parts.symbol && (
+          <span className="ml-1 text-[0.95rem] font-light opacity-60">{parts.symbol}</span>
+        )}
+      </>
+    );
   };
 
   const groupedOperations = useMemo(() => {
@@ -171,12 +192,11 @@ export default function OperationsList({
                         </div>
                         <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
                           <p
-                            className={`text-[1.85rem] font-light whitespace-nowrap ${
+                            className={`whitespace-nowrap tabular-nums leading-none ${
                               op.type === "expense" ? "text-red-600" : "text-green-600"
                             }`}
                           >
-                            {op.type === "expense" ? "-" : "+"}
-                            {formatCurrency(op.amountMinor)}
+                            {renderOperationAmount(op.amountMinor, op.type)}
                           </p>
                           <div className="flex items-center gap-2">
                             {deleteConfirm !== op.id && (

@@ -2,14 +2,67 @@
  * Format utility functions
  */
 
-export function formatCurrency(amountMinor: number): string {
+const currencyFormatter = new Intl.NumberFormat('ru-RU', {
+  style: 'decimal',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const currencySymbol = '₼';
+
+export interface CurrencyParts {
+  sign: string;
+  integer: string;
+  fraction: string;
+  decimal: string;
+  symbol: string;
+}
+
+export function formatCurrencyParts(amountMinor: number): CurrencyParts {
   const amount = amountMinor / 100;
-  const formatted = new Intl.NumberFormat('ru-RU', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-  return `${formatted} ₼`;
+  const parts = currencyFormatter.formatToParts(amount);
+  let sign = '';
+  let integer = '';
+  let fraction = '';
+  let decimal = ',';
+
+  for (const part of parts) {
+    switch (part.type) {
+      case 'minusSign':
+      case 'plusSign':
+        sign = part.value;
+        break;
+      case 'integer':
+      case 'group':
+        integer += part.value;
+        break;
+      case 'fraction':
+        fraction = part.value;
+        break;
+      case 'decimal':
+        decimal = part.value;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (!fraction) {
+    fraction = '00';
+  }
+
+  return {
+    sign,
+    integer,
+    fraction,
+    decimal,
+    symbol: currencySymbol,
+  };
+}
+
+export function formatCurrency(amountMinor: number): string {
+  const parts = formatCurrencyParts(amountMinor);
+  const symbol = parts.symbol ? ` ${parts.symbol}` : '';
+  return `${parts.sign}${parts.integer}${parts.decimal}${parts.fraction}${symbol}`;
 }
 
 export function formatDate(date: string): string {

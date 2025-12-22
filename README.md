@@ -262,11 +262,11 @@ dailyLimit = max(0, remaining) / max(1, daysLeft)
 **Настройка:**
 
 1. **Frontend** (автоматически при билде):
-   - Конфигурация: `frontend/ftp-config.json`
+   - Конфигурация: `secrets/ftp.json` (секция `frontend`)
    - Загружает `frontend/dist/` → `/finance.nagiyev.com` на FTP
 
 2. **Backend** (через скрипт):
-   - Конфигурация: `backend/ftp-config.json`
+   - Конфигурация: `secrets/ftp.json` (секция `backend`)
    - Загружает `backend/` → `/api.nagiyev.com` на FTP
 
 **Команды для деплоя:**
@@ -286,13 +286,11 @@ npm run deploy:all
 
 **Первоначальная настройка:**
 
-Конфигурационные файлы уже настроены с вашими данными. Если нужно изменить пути:
-- `frontend/ftp-config.json` - настройки для фронтенда
-- `backend/ftp-config.json` - настройки для бэкенда
+Создайте `secrets/ftp.json` на основе `secrets/ftp.example.json` и заполните ваши данные.
 
 Подробная инструкция: [frontend/FTP_SETUP.md](frontend/FTP_SETUP.md)
 
-⚠️ **Важно:** Файлы `ftp-config.json` содержат чувствительные данные и не должны коммититься в репозиторий.
+⚠️ **Важно:** Файл `secrets/ftp.json` содержит чувствительные данные и не должен коммититься в репозиторий.
 
 ## Безопасность
 

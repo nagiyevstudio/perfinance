@@ -4,30 +4,32 @@
 
 ## Быстрая настройка
 
-1. **Скопируйте пример конфигурации:**
+1. **Скопируйте пример конфигурации (из корня проекта):**
    ```bash
-   cp ftp-config.example.json ftp-config.json
+   cp secrets/ftp.example.json secrets/ftp.json
    ```
 
-2. **Отредактируйте `ftp-config.json`** и укажите ваши FTP данные:
+2. **Отредактируйте `secrets/ftp.json`** и укажите ваши FTP данные в секции `frontend`:
    ```json
-   {
-     "host": "your-ftp-host.com",
-     "user": "your-username",
-     "password": "your-password",
-     "port": 21,
-     "localRoot": "./dist",
-     "remoteRoot": "/",
-     "include": ["*", "**/*"],
-     "exclude": [".git/**", ".gitignore", ".DS_Store", "node_modules/**"],
-     "deleteRemote": false,
-     "forcePasv": true,
-     "secure": false,
-     "secureOptions": {
-       "rejectUnauthorized": false
-     }
-   }
-   ```
+{
+  "frontend": {
+    "host": "your-ftp-host.com",
+    "user": "your-username",
+    "password": "your-password",
+    "port": 21,
+    "localRoot": "./dist",
+    "remoteRoot": "/finance.nagiyev.com",
+    "include": ["*", "**/*"],
+    "exclude": [".git/**", ".gitignore", ".DS_Store", "node_modules/**"],
+    "deleteRemote": false,
+    "forcePasv": true,
+    "secure": true,
+    "secureOptions": {
+      "rejectUnauthorized": false
+    }
+  }
+}
+```
 
    **Для FTPS (FTP over SSL):** установите `"secure": true`
 
@@ -57,18 +59,18 @@
 
 ## Безопасность
 
-⚠️ **Важно:** Файл `ftp-config.json` содержит чувствительные данные и добавлен в `.gitignore`. Никогда не коммитьте его в репозиторий!
+⚠️ **Важно:** Файл `secrets/ftp.json` содержит чувствительные данные и добавлен в `.gitignore`. Никогда не коммитьте его в репозиторий!
 
 ## Отключение автоматической загрузки
 
 Если нужно временно отключить автоматическую загрузку:
 
-1. Переименуйте или удалите файл `ftp-config.json`
+1. Переименуйте или удалите файл `secrets/ftp.json`
 2. Или закомментируйте плагин в `vite.config.ts`:
    ```typescript
    plugins: [
      react(),
-     // vitePluginFtp('./ftp-config.json'), // закомментировано
+     // vitePluginFtp('../secrets/ftp.json'), // закомментировано
    ],
    ```
 
@@ -93,7 +95,7 @@
 - Проверьте права доступа на FTP-сервере
 
 ### Плагин не запускается
-- Убедитесь, что файл `ftp-config.json` существует в папке `frontend/`
+- Убедитесь, что файл `secrets/ftp.json` существует в корне проекта
 - Проверьте синтаксис JSON в конфигурационном файле
 - Посмотрите логи в консоли при выполнении `npm run build`
 

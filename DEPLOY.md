@@ -40,33 +40,37 @@ npm run deploy:backend
 
 ### Frontend
 
-Файл: `frontend/ftp-config.json`
+Файл: `secrets/ftp.json` (секция `frontend`)
 
 ```json
 {
-  "host": "ftps26.us.cloudlogin.co",
-  "user": "alterace",
-  "password": "8800044",
-  "port": 21,
-  "localRoot": "./dist",
-  "remoteRoot": "/finance.nagiyev.com",
-  "secure": true
+  "frontend": {
+    "host": "your-ftp-host.com",
+    "user": "your-username",
+    "password": "your-password",
+    "port": 21,
+    "localRoot": "./dist",
+    "remoteRoot": "/finance.nagiyev.com",
+    "secure": true
+  }
 }
 ```
 
 ### Backend
 
-Файл: `backend/ftp-config.json`
+Файл: `secrets/ftp.json` (секция `backend`)
 
 ```json
 {
-  "host": "ftps26.us.cloudlogin.co",
-  "user": "alterace",
-  "password": "8800044",
-  "port": 21,
-  "localRoot": ".",
-  "remoteRoot": "/api.nagiyev.com",
-  "secure": true
+  "backend": {
+    "host": "your-ftp-host.com",
+    "user": "your-username",
+    "password": "your-password",
+    "port": 21,
+    "localRoot": ".",
+    "remoteRoot": "/api.nagiyev.com",
+    "secure": true
+  }
 }
 ```
 
@@ -90,13 +94,13 @@ npm run deploy:backend
 
 ## Безопасность
 
-⚠️ **Важно:** Файлы `ftp-config.json` содержат чувствительные данные и добавлены в `.gitignore`. Они не будут коммититься в репозиторий.
+⚠️ **Важно:** Файл `secrets/ftp.json` содержит чувствительные данные и добавлен в `.gitignore`. Он не будет коммититься в репозиторий.
 
 ## Устранение проблем
 
 ### Ошибка подключения к FTP
 
-1. Проверьте правильность данных в `ftp-config.json`
+1. Проверьте правильность данных в `secrets/ftp.json`
 2. Убедитесь, что сервер доступен
 3. Проверьте настройки файрвола
 

@@ -34,15 +34,20 @@ try {
   process.exit(1);
 }
 
-const configFile = path.resolve(__dirname, 'ftp-config.json');
+const configCandidates = [
+  path.resolve(rootDir, 'secrets', 'ftp.json'),
+  path.resolve(__dirname, 'ftp-config.json'),
+];
+const configFile = configCandidates.find((candidate) => fs.existsSync(candidate));
 
-if (!fs.existsSync(configFile)) {
-  console.warn('⚠️  FTP config file not found: ftp-config.json. Skipping FTP upload.');
+if (!configFile) {
+  console.warn('⚠️  FTP config file not found. Skipping FTP upload.');
   process.exit(0);
 }
 
 try {
-  const config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+  const rawConfig = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
+  const config = rawConfig && rawConfig.backend ? rawConfig.backend : rawConfig;
   
   if (!config.host || !config.user || !config.password) {
     console.warn('⚠️  FTP config is incomplete. Skipping FTP upload.');
