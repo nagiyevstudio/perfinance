@@ -13,8 +13,21 @@ interface AnalyticsTotalsProps {
 export default function AnalyticsTotals({ totals, isLoading }: AnalyticsTotalsProps) {
   if (isLoading) {
     return (
-      <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
-        Загружаем сводку...
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="flex flex-nowrap items-center justify-between divide-x divide-gray-200 dark:divide-gray-700">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div
+              key={`totals-skeleton-${index}`}
+              className="flex flex-1 items-center justify-center gap-2 px-3 py-3 sm:py-4"
+            >
+              <div className="pf-skeleton h-4 w-4 rounded-full" />
+              <div className="space-y-2">
+                <div className="pf-skeleton h-3 w-16 sm:w-24 rounded-full" />
+                <div className="pf-skeleton h-4 w-20 sm:w-28 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

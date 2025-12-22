@@ -25,7 +25,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
 
   // Fetch budget
-  const { data: budget } = useQuery({
+  const { data: budget, isLoading: budgetLoading } = useQuery({
     queryKey: ['budget', selectedMonth],
     queryFn: () => budgetApi.getBudget(selectedMonth),
   });
@@ -151,12 +151,14 @@ export default function Dashboard() {
             remaining={budget?.remaining || 0}
             isOverBudget={budget?.isOverBudget || false}
             onEdit={handleSaveBudget}
+            isLoading={budgetLoading}
           />
           <DailyLimitCard
             daysLeft={budget?.daysLeft || 0}
             dailyLimit={budget?.dailyLimit || 0}
             todayExpenseSum={todayExpenseSum}
             isOverBudget={budget?.isOverBudget || false}
+            isLoading={budgetLoading}
           />
         </div>
 

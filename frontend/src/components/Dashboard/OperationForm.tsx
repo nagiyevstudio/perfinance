@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -58,6 +58,51 @@ const normalizeDateTimeValue = (value?: string | null) => {
   return normalized;
 };
 
+const NOTE_TEMPLATES_KEY = 'pf.note-templates.v1';
+const NOTE_TEMPLATES_LIMIT = 8;
+const NOTE_SUGGESTIONS_LIMIT = 5;
+
+const readNoteTemplates = (): Record<string, string[]> => {
+  if (typeof window === 'undefined') {
+    return {};
+  }
+  try {
+    const raw = localStorage.getItem(NOTE_TEMPLATES_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+    return parsed as Record<string, string[]>;
+  } catch {
+    return {};
+  }
+};
+
+const writeNoteTemplates = (templates: Record<string, string[]>) => {
+  try {
+    localStorage.setItem(NOTE_TEMPLATES_KEY, JSON.stringify(templates));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const addNoteTemplate = (categoryId: string, note: string) => {
+  const normalized = note.trim();
+  if (!normalized) {
+    return;
+  }
+  const templates = readNoteTemplates();
+  const existing = templates[categoryId] ?? [];
+  const filtered = existing.filter(
+    (item) => item.trim().toLowerCase() !== normalized.toLowerCase()
+  );
+  templates[categoryId] = [normalized, ...filtered].slice(0, NOTE_TEMPLATES_LIMIT);
+  writeNoteTemplates(templates);
+};
+
 export default function OperationForm({
   operation,
   categories,
@@ -112,6 +157,23 @@ export default function OperationForm({
   const displayAmount = amountValue ? String(amountValue / 100) : '0';
 
   const selectedType = watch('type');
+  const selectedCategoryId = watch('categoryId');
+  const noteValue = watch('note') ?? '';
+  const noteSuggestions = useMemo(() => {
+    if (!selectedCategoryId) {
+      return [];
+    }
+    const templates = readNoteTemplates();
+    const items = templates[selectedCategoryId] ?? [];
+    if (!items.length) {
+      return [];
+    }
+    const query = noteValue.trim().toLowerCase();
+    const filtered = query
+      ? items.filter((item) => item.toLowerCase().includes(query))
+      : items;
+    return filtered.slice(0, NOTE_SUGGESTIONS_LIMIT);
+  }, [noteValue, selectedCategoryId]);
 
   useEffect(() => {
     if (previousType.current === null) {
@@ -140,6 +202,9 @@ export default function OperationForm({
         date: data.date,
         note: data.note,
       });
+      if (data.categoryId && data.note) {
+        addNoteTemplate(data.categoryId, data.note);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -159,9 +224,18 @@ export default function OperationForm({
   const currentFilteredCategories = categories.filter((cat) => cat.type === selectedType);
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-10 mx-auto w-[92vw] max-w-md p-5 border shadow-lg rounded-2xl bg-white dark:bg-gray-800">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+    <div className="fixed inset-0 bg-gray-950/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+      <div className="relative top-10 mx-auto w-[92vw] max-w-lg p-6 sm:p-7 border shadow-xl rounded-3xl bg-white dark:bg-gray-800">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30]"
+          aria-label="Закрыть"
+          title="Закрыть"
+        >
+          <MaterialIcon name="close" className="h-7 w-7" />
+        </button>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
           {operation ? 'Редактировать операцию' : 'Добавить операцию'}
         </h3>
 
@@ -195,50 +269,57 @@ export default function OperationForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Сумма (₼)
+              Сумма
             </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              inputMode="decimal"
-              value={amountInput}
-              onFocus={() => {
-                setIsAmountFocused(true);
-                const normalized = amountInput.replace(',', '.');
-                const numericValue = parseFloat(normalized);
-                if (!amountInput || (!isNaN(numericValue) && numericValue === 0)) {
-                  setAmountInput('');
-                }
-              }}
-              onBlur={() => {
-                setIsAmountFocused(false);
-                const normalized = amountInput.replace(',', '.').trim();
-                const numericValue = parseFloat(normalized);
-                if (!normalized || isNaN(numericValue)) {
-                  setValue('amountMinor', 0, { shouldValidate: false });
-                  setAmountInput('0');
-                } else {
-                  setValue('amountMinor', Math.round(numericValue * 100), {
-                    shouldValidate: true,
-                  });
-                }
-              }}
-              onChange={(e) => {
-                const rawValue = e.target.value;
-                setAmountInput(rawValue);
-                const normalized = rawValue.replace(',', '.');
-                if (!normalized) {
-                  setValue('amountMinor', 0, { shouldValidate: false });
-                  return;
-                }
-                const aznValue = parseFloat(normalized);
-                if (!isNaN(aznValue)) {
-                  setValue('amountMinor', Math.round(aznValue * 100), { shouldValidate: true });
-                }
-              }}
-              className="pf-input mt-1"
-            />
+            <div className="relative mt-2">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                inputMode="decimal"
+                value={amountInput}
+                onFocus={() => {
+                  setIsAmountFocused(true);
+                  const normalized = amountInput.replace(',', '.');
+                  const numericValue = parseFloat(normalized);
+                  if (!amountInput || (!isNaN(numericValue) && numericValue === 0)) {
+                    setAmountInput('');
+                  }
+                }}
+                onBlur={() => {
+                  setIsAmountFocused(false);
+                  const normalized = amountInput.replace(',', '.').trim();
+                  const numericValue = parseFloat(normalized);
+                  if (!normalized || isNaN(numericValue)) {
+                    setValue('amountMinor', 0, { shouldValidate: false });
+                    setAmountInput('0');
+                  } else {
+                    setValue('amountMinor', Math.round(numericValue * 100), {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                onChange={(e) => {
+                  const rawValue = e.target.value;
+                  setAmountInput(rawValue);
+                  const normalized = rawValue.replace(',', '.');
+                  if (!normalized) {
+                    setValue('amountMinor', 0, { shouldValidate: false });
+                    return;
+                  }
+                  const aznValue = parseFloat(normalized);
+                  if (!isNaN(aznValue)) {
+                    setValue('amountMinor', Math.round(aznValue * 100), {
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                className="pf-input h-14 text-center text-3xl font-semibold tracking-tight pr-12"
+              />
+              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                ₼
+              </span>
+            </div>
             {errors.amountMinor && (
               <p className="mt-1 text-sm text-red-600">{errors.amountMinor.message}</p>
             )}
@@ -285,6 +366,32 @@ export default function OperationForm({
               rows={3}
               className="pf-textarea mt-1"
             />
+            {noteSuggestions.length > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                  Подсказки
+                </span>
+                {noteSuggestions.map((note, index) => (
+                  <span
+                    key={`${note}-${index}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setValue('note', note, { shouldDirty: true })}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        setValue('note', note, { shouldDirty: true });
+                      }
+                    }}
+                    className="cursor-pointer text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  >
+                    {note}
+                    {index < noteSuggestions.length - 1 && (
+                      <span className="text-gray-300 dark:text-gray-600"> · </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between pt-4">

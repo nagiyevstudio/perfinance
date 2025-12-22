@@ -164,7 +164,11 @@ export default function Categories() {
           )}
 
           {isLoading ? (
-            <div className="text-center py-8">Загрузка...</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={`category-skeleton-${index}`} className="pf-skeleton h-20 rounded-lg" />
+              ))}
+            </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               Нет категорий. Добавьте первую категорию.

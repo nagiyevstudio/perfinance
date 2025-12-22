@@ -114,7 +114,31 @@ export default function OperationsList({
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Загрузка...</div>;
+    return (
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, groupIndex) => (
+              <div key={`op-skeleton-${groupIndex}`} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="pf-skeleton h-4 w-24 rounded-full" />
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                  <div className="pf-skeleton h-4 w-16 rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  {Array.from({ length: 2 }).map((_, itemIndex) => (
+                    <div
+                      key={`op-skeleton-${groupIndex}-${itemIndex}`}
+                      className="pf-skeleton h-20 w-full rounded-lg"
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

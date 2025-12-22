@@ -6,6 +6,7 @@ interface DailyLimitCardProps {
   dailyLimit: number;
   todayExpenseSum: number;
   isOverBudget: boolean;
+  isLoading?: boolean;
 }
 
 export default function DailyLimitCard({
@@ -13,7 +14,29 @@ export default function DailyLimitCard({
   dailyLimit,
   todayExpenseSum,
   isOverBudget,
+  isLoading,
 }: DailyLimitCardProps) {
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="pf-skeleton h-10 w-10 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <div className="pf-skeleton h-3 w-32 rounded-full" />
+              <div className="pf-skeleton h-5 w-24 rounded-full" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="pf-skeleton h-3 w-44 rounded-full" />
+            <div className="pf-skeleton h-3 w-36 rounded-full" />
+            <div className="pf-skeleton h-2 w-full rounded-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // dailyLimit приходит в минорных единицах (например, 1815.27)
   const dailyLimitMinor = Math.round(dailyLimit);
   // Вычисляем процент использования дневного лимита

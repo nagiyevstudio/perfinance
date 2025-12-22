@@ -24,6 +24,13 @@ header("Access-Control-Allow-Credentials: true", true);
 header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS", true);
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Accept, Origin", true);
 header("Access-Control-Max-Age: 86400", true); // Кеш preflight запросов на 24 часа
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0', true);
+header('Pragma: no-cache', true);
+header('Expires: 0', true);
+header('X-Content-Type-Options: nosniff', true);
+header('Referrer-Policy: no-referrer', true);
+header('X-Frame-Options: DENY', true);
+header('X-Robots-Tag: noindex, nofollow, noarchive', true);
 
 // Обработка preflight запросов (браузер сначала "спрашивает" разрешение)
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {

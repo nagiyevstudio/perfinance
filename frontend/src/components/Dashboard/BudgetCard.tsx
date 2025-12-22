@@ -7,6 +7,7 @@ interface BudgetCardProps {
   remaining: number;
   isOverBudget: boolean;
   onEdit?: () => void;
+  isLoading?: boolean;
 }
 
 export default function BudgetCard({
@@ -15,7 +16,30 @@ export default function BudgetCard({
   remaining,
   isOverBudget,
   onEdit,
+  isLoading,
 }: BudgetCardProps) {
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="pf-skeleton h-10 w-10 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <div className="pf-skeleton h-3 w-32 rounded-full" />
+              <div className="pf-skeleton h-5 w-24 rounded-full" />
+            </div>
+            <div className="pf-skeleton h-9 w-9 rounded-full" />
+          </div>
+          <div className="space-y-3">
+            <div className="pf-skeleton h-3 w-40 rounded-full" />
+            <div className="pf-skeleton h-3 w-32 rounded-full" />
+            <div className="pf-skeleton h-2 w-full rounded-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const percentage = planned > 0 ? Math.min((spent / planned) * 100, 100) : 0;
   const editButton =
     'inline-flex items-center justify-center h-9 w-9 rounded-full bg-[#d27b30]/10 text-[#d27b30] hover:bg-[#d27b30]/20';

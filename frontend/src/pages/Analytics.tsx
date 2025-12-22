@@ -58,7 +58,21 @@ export default function Analytics() {
         <MonthSelector selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />
 
         {isLoading ? (
-          <div className="text-center py-8">Загрузка аналитики...</div>
+          <>
+            <div className="mb-6">
+              <AnalyticsTotals isLoading />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="pf-skeleton h-5 w-48 rounded-full mb-4" />
+                <div className="pf-skeleton h-72 w-full rounded-2xl" />
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="pf-skeleton h-5 w-40 rounded-full mb-4" />
+                <div className="pf-skeleton h-72 w-full rounded-2xl" />
+              </div>
+            </div>
+          </>
         ) : !analytics ? (
           <div className="text-center py-8">Нет данных для отображения</div>
         ) : (
