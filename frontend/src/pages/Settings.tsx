@@ -1,15 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/common/Layout';
 import MaterialIcon from '../components/common/MaterialIcon';
 import { useAuth } from '../store/auth';
 import { authApi, exportApi } from '../services/api';
 import { getCurrentMonth } from '../utils/format';
+import { applyTheme, getStoredTheme, setStoredTheme, type ThemePreference } from '../utils/theme';
 
 export default function Settings() {
   const { user, logout } = useAuth();
   const [exportMonth, setExportMonth] = useState(getCurrentMonth());
   const [isExporting, setIsExporting] = useState(false);
   const [exportAll, setExportAll] = useState(false);
+  const [themePreference, setThemePreference] = useState<ThemePreference>(getStoredTheme());
+
+  useEffect(() => {
+    setStoredTheme(themePreference);
+    applyTheme(themePreference);
+  }, [themePreference]);
+
+  const themeButtonBase =
+    'inline-flex items-center justify-center h-10 px-4 rounded-full border text-sm font-medium shadow-sm transition-colors cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-[#d27b30] focus-within:ring-offset-2 focus-within:ring-offset-white dark:focus-within:ring-offset-gray-800';
+  const themeButtonInactive =
+    'border-gray-200 text-gray-700 bg-white/80 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800/70 dark:hover:bg-gray-800';
+  const themeButtonActive =
+    'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900';
+  const themeOptions: { value: ThemePreference; label: string }[] = [
+    { value: 'light', label: 'Светлая' },
+    { value: 'dark', label: 'Темная' },
+    { value: 'auto', label: 'Авто' },
+  ];
 
   const handleLogout = async () => {
     try {
@@ -135,6 +154,36 @@ export default function Settings() {
           </div>
 
           <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Тема</h2>
+              <div className="flex flex-wrap gap-2">
+                {themeOptions.map((option) => {
+                  const isActive = themePreference === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`${themeButtonBase} ${
+                        isActive ? themeButtonActive : themeButtonInactive
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="theme"
+                        value={option.value}
+                        checked={isActive}
+                        onChange={() => setThemePreference(option.value)}
+                        className="sr-only"
+                      />
+                      {option.label}
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                Авто — как в системе.
+              </p>
+            </div>
+
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-left">
               <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Валюта</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
