@@ -21,7 +21,25 @@ export function formatDate(date: string): string {
 }
 
 export function formatDateTime(date: string): string {
-  const parsed = new Date(date);
+  const normalized = date?.trim();
+  if (!normalized) {
+    return date;
+  }
+
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2})?)?$/
+  );
+
+  if (match) {
+    const [, year, month, day, hours, minutes] = match;
+    const shortYear = year.slice(-2);
+    if (!hours || !minutes) {
+      return `${day}.${month}.${shortYear}`;
+    }
+    return `${day}.${month}.${shortYear} - ${hours}:${minutes}`;
+  }
+
+  const parsed = new Date(normalized);
   if (Number.isNaN(parsed.getTime())) {
     return date;
   }

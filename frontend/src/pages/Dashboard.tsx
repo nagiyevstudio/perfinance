@@ -130,6 +130,7 @@ export default function Dashboard() {
   const operations = operationsData?.operations || [];
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const todayOperations = operations.filter((operation) => operation.date.slice(0, 10) === todayKey);
   const todayExpenseSumFromOps = operations.reduce((sum, operation) => {
     if (operation.type === 'expense' && operation.date.slice(0, 10) === todayKey) {
       return sum + operation.amountMinor;
@@ -171,7 +172,7 @@ export default function Dashboard() {
 
         <div className="mt-8">
           <OperationsPanel
-            operations={operations}
+            operations={todayOperations}
             isLoading={operationsLoading}
             limit={10}
             onAdd={handleAddOperation}
