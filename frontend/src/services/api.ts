@@ -176,6 +176,8 @@ export interface AuthResponse {
   user: {
     id: string;
     email: string;
+    name?: string | null;
+    role: 'owner' | 'editor' | 'viewer';
     createdAt: string;
   };
   token: string;
@@ -185,7 +187,10 @@ export const authApi = {
   login: (data: LoginRequest) => api.post<AuthResponse>('/auth/login', data),
   register: (data: RegisterRequest) => api.post<AuthResponse>('/auth/register', data),
   logout: () => api.post('/auth/logout'),
-  getMe: () => api.get<{ id: string; email: string; createdAt: string; updatedAt: string }>('/me'),
+  getMe: () =>
+    api.get<{ id: string; email: string; name?: string | null; role: 'owner' | 'editor' | 'viewer'; createdAt: string; updatedAt: string }>(
+      '/me'
+    ),
 };
 
 // Budget API

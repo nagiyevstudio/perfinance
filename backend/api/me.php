@@ -28,6 +28,8 @@ try {
     sendSuccess([
         'id' => $user['id'],
         'email' => $user['email'],
+        'name' => $user['name'] ?? null,
+        'role' => $user['role'] ?? 'owner',
         'createdAt' => $user['created_at'],
         'updatedAt' => $user['updated_at']
     ]);

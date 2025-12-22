@@ -28,11 +28,13 @@ switch ($method) {
         break;
         
     case 'POST':
+        requireWriteAccess($userId);
         handleCreateOperation($operationModel, $userId);
         break;
         
     case 'PUT':
         if ($id) {
+            requireWriteAccess($userId);
             handleUpdateOperation($operationModel, $userId, $id);
         } else {
             sendNotFound('Operation ID required');
@@ -41,6 +43,7 @@ switch ($method) {
         
     case 'DELETE':
         if ($id) {
+            requireWriteAccess($userId);
             handleDeleteOperation($operationModel, $userId, $id);
         } else {
             sendNotFound('Operation ID required');

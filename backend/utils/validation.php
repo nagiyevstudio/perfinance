@@ -12,6 +12,17 @@ function validatePassword($password, $minLength = 8) {
     return strlen($password) >= $minLength;
 }
 
+function validateName($name, $maxLength = 100) {
+    if ($name === null) {
+        return true;
+    }
+    if (!is_string($name)) {
+        return false;
+    }
+    $trimmed = trim($name);
+    return $trimmed === '' || strlen($trimmed) <= $maxLength;
+}
+
 function validateRequired($value) {
     return !empty($value) || (is_numeric($value) && $value == 0);
 }

@@ -6,6 +6,7 @@ import {
   Cell,
   BarChart,
   Bar,
+  ReferenceLine,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -16,7 +17,7 @@ import {
 import Layout from '../components/common/Layout';
 import MonthSelector from '../components/Dashboard/MonthSelector';
 import AnalyticsTotals from '../components/Analytics/AnalyticsTotals';
-import { analyticsApi } from '../services/api';
+import { analyticsApi, budgetApi } from '../services/api';
 import { formatCurrency, getCurrentMonth } from '../utils/format';
 
 const FALLBACK_COLORS = ['#d27b30', '#e0944f', '#f0b272', '#c4601c', '#a35317', '#f4c89b', '#8b4715'];
@@ -27,6 +28,11 @@ export default function Analytics() {
   const { data: analytics, isLoading } = useQuery({
     queryKey: ['analytics', selectedMonth],
     queryFn: () => analyticsApi.get(selectedMonth),
+  });
+
+  const { data: budget } = useQuery({
+    queryKey: ['budget', selectedMonth],
+    queryFn: () => budgetApi.getBudget(selectedMonth),
   });
 
   const categoryData = analytics
@@ -44,6 +50,7 @@ export default function Analytics() {
         amount: item.totalMinor / 100,
       }))
     : [];
+  const dailyLimitMajor = (budget?.dailyLimit || 0) / 100;
 
   return (
     <Layout>
@@ -130,6 +137,18 @@ export default function Analytics() {
                       <YAxis />
                       <Tooltip formatter={(value: number) => formatCurrency(value * 100)} />
                       <Legend />
+                      {dailyLimitMajor > 0 && (
+                        <ReferenceLine
+                          y={dailyLimitMajor}
+                          stroke="#b45309"
+                          strokeDasharray="4 4"
+                          label={{
+                            value: 'Дневной лимит',
+                            position: 'insideTopRight',
+                            fill: '#b45309',
+                          }}
+                        />
+                      )}
                       <Bar dataKey="amount" fill="#d27b30" name="Сумма (₼)" />
                     </BarChart>
                   </ResponsiveContainer>

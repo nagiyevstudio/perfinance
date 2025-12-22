@@ -31,6 +31,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const sectionTitle =
     navItems.find((item) => item.path === location.pathname)?.label ?? 'PerFinance';
+  const displayName = user?.name?.trim() ? user.name : user?.email;
+  const roleLabel = user?.role ? `(${user.role})` : '';
 
   const handleTouchStart = (event: React.TouchEvent) => {
     if (isRefreshing) return;
@@ -100,7 +102,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div className="flex items-center">
               <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-300 mr-4">
-                {user?.email}
+                {displayName} {roleLabel}
               </span>
             </div>
           </div>
@@ -143,7 +145,11 @@ export default function Layout({ children }: LayoutProps) {
                     : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
-                <MaterialIcon name={item.icon} className="h-5 w-5" />
+                <MaterialIcon
+                  name={item.icon}
+                  className="h-6 w-6"
+                  variant={isActive ? 'filled' : 'outlined'}
+                />
                 {item.label}
               </Link>
             );

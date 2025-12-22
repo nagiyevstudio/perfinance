@@ -14,7 +14,7 @@ function base64UrlDecode($data) {
     return base64_decode(strtr($data, '-_', '+/'));
 }
 
-function generateJWT($userId, $email) {
+function generateJWT($userId, $email, $role = null) {
     $config = getAuthConfig();
     $secret = $config['jwt_secret'];
     $expiration = time() + $config['jwt_expiration'];
@@ -30,6 +30,10 @@ function generateJWT($userId, $email) {
         'iat' => time(),
         'exp' => $expiration
     ];
+
+    if ($role !== null) {
+        $payload['role'] = $role;
+    }
     
     $headerEncoded = base64UrlEncode(json_encode($header));
     $payloadEncoded = base64UrlEncode(json_encode($payload));

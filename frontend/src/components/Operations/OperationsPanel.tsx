@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import MaterialIcon from '../common/MaterialIcon';
 import OperationsList from '../Dashboard/OperationsList';
 import { Operation } from '../../services/api';
+import { formatCurrency } from '../../utils/format';
 import { getCategoryStyle } from '../../utils/categoryStyle';
 
 const typeButtonBase =
@@ -66,6 +67,13 @@ export default function OperationsPanel({
       }
     });
     return Array.from(map.values());
+  }, [operations]);
+
+  const categoryTotals = useMemo(() => {
+    return operations.reduce<Record<string, number>>((acc, op) => {
+      acc[op.categoryId] = (acc[op.categoryId] || 0) + op.amountMinor;
+      return acc;
+    }, {});
   }, [operations]);
 
   const visibleCategories = useMemo(() => {
@@ -224,6 +232,9 @@ export default function OperationsPanel({
                   >
                     <MaterialIcon name={iconName} className="h-3.5 w-3.5" />
                     {cat.name}
+                    <span className="text-[11px] font-normal opacity-80">
+                      {formatCurrency(categoryTotals[cat.id] || 0)}
+                    </span>
                   </button>
                 );
               })}

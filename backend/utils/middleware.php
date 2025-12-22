@@ -61,6 +61,7 @@ function requireAuth() {
             $_SESSION['user_id'] = $payload['user_id'];
             $_SESSION['user_email'] = $payload['email'];
             $_SESSION['jwt_payload'] = $payload;
+            $_SESSION['user_role'] = $payload['role'] ?? null;
             return $payload['user_id'];
         }
     }
@@ -87,6 +88,31 @@ function getAuthenticatedUserId() {
     }
     
     return null;
+}
+
+function getAuthenticatedUserRole($userId) {
+    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] !== null) {
+        return $_SESSION['user_role'];
+    }
+
+    if (isset($_SESSION['jwt_payload']) && isset($_SESSION['jwt_payload']['role'])) {
+        $_SESSION['user_role'] = $_SESSION['jwt_payload']['role'];
+        return $_SESSION['user_role'];
+    }
+
+    require_once __DIR__ . '/../models/User.php';
+    $userModel = new User();
+    $user = $userModel->findById($userId);
+    $role = $user['role'] ?? null;
+    $_SESSION['user_role'] = $role;
+    return $role;
+}
+
+function requireWriteAccess($userId) {
+    $role = getAuthenticatedUserRole($userId);
+    if (!in_array($role, ['owner', 'editor'], true)) {
+        sendForbidden('Read-only access');
+    }
 }
 
 function requireOwnership($userId, $resourceUserId, $resourceName = 'Resource') {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -69,6 +69,7 @@ export default function OperationForm({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isAmountFocused, setIsAmountFocused] = useState(false);
   const [amountInput, setAmountInput] = useState('0');
+  const previousType = useRef<OperationFormData['type'] | null>(null);
   const actionBase =
     "inline-flex items-center gap-2 h-10 px-3 rounded-full text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800";
   const actionDelete = `${actionBase} bg-red-500/10 text-red-700 hover:bg-red-500/20 dark:text-red-300`;
@@ -113,8 +114,14 @@ export default function OperationForm({
   const selectedType = watch('type');
 
   useEffect(() => {
-    // Reset category when type changes
-    setValue('categoryId', '');
+    if (previousType.current === null) {
+      previousType.current = selectedType;
+      return;
+    }
+    if (previousType.current !== selectedType) {
+      setValue('categoryId', '');
+      previousType.current = selectedType;
+    }
   }, [selectedType, setValue]);
 
   useEffect(() => {

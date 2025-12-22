@@ -29,6 +29,7 @@ switch ($method) {
         
     case 'PUT':
         if ($month && $action === 'budget') {
+            requireWriteAccess($userId);
             handleSetBudget($userId, $month);
         } else {
             sendNotFound('Endpoint not found');

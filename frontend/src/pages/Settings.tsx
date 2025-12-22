@@ -58,10 +58,26 @@ export default function Settings() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Имя
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user?.name?.trim() || '—'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     Email
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-white">
                     {user?.email}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Роль
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {user?.role || '—'}
                   </div>
                 </div>
               </div>

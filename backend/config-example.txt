@@ -9,6 +9,9 @@ DB_PASSWORD=5HZv27Jon-
 # JWT Secret (generate a strong random string for production)
 JWT_SECRET=change-this-secret-key-in-production
 
+# Registration
+ALLOW_REGISTRATION=false
+
 # Application Settings
 APP_ENV=production
 APP_URL=https://api.nagiyev.com

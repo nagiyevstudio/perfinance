@@ -25,11 +25,13 @@ switch ($method) {
         break;
         
     case 'POST':
+        requireWriteAccess($userId);
         handleCreateCategory($categoryModel, $userId);
         break;
         
     case 'PUT':
         if ($id) {
+            requireWriteAccess($userId);
             handleUpdateCategory($categoryModel, $userId, $id);
         } else {
             sendNotFound('Category ID required');
@@ -38,6 +40,7 @@ switch ($method) {
         
     case 'PATCH':
         if ($id && $action === 'archive') {
+            requireWriteAccess($userId);
             handleArchiveCategory($categoryModel, $userId, $id);
         } else {
             sendNotFound('Endpoint not found');

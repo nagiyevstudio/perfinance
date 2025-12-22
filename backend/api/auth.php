@@ -39,6 +39,11 @@ switch ($method) {
 }
 
 function handleRegister() {
+    $config = getAuthConfig();
+    if (empty($config['allow_registration'])) {
+        sendForbidden('Registration is disabled');
+    }
+
     $data = getJSONInput();
     
     if (!$data) {
@@ -48,6 +53,8 @@ function handleRegister() {
     $email = sanitizeString($data['email'] ?? '');
     $password = $data['password'] ?? '';
     $confirmPassword = $data['confirmPassword'] ?? $password;
+    $nameInput = $data['name'] ?? null;
+    $name = $nameInput === null ? null : sanitizeString($nameInput);
     
     // Validation
     $errors = [];
@@ -63,6 +70,10 @@ function handleRegister() {
     } elseif (!validatePassword($password)) {
         $errors['password'] = 'Password must be at least 8 characters';
     }
+
+    if (!validateName($name)) {
+        $errors['name'] = 'Name is too long';
+    }
     
     if ($password !== $confirmPassword) {
         $errors['confirmPassword'] = 'Passwords do not match';
@@ -75,15 +86,17 @@ function handleRegister() {
     // Create user
     try {
         $userModel = new User();
-        $user = $userModel->create($email, $password);
+        $user = $userModel->create($email, $password, $name);
         
         // Generate JWT token
-        $token = generateJWT($user['id'], $user['email']);
+        $token = generateJWT($user['id'], $user['email'], $user['role'] ?? null);
         
         sendSuccess([
             'user' => [
                 'id' => $user['id'],
                 'email' => $user['email'],
+                'name' => $user['name'] ?? null,
+                'role' => $user['role'] ?? 'owner',
                 'createdAt' => $user['created_at']
             ],
             'token' => $token
@@ -127,12 +140,14 @@ function handleLogin() {
         }
         
         // Generate JWT token
-        $token = generateJWT($user['id'], $user['email']);
+        $token = generateJWT($user['id'], $user['email'], $user['role'] ?? null);
         
         sendSuccess([
             'user' => [
                 'id' => $user['id'],
                 'email' => $user['email'],
+                'name' => $user['name'] ?? null,
+                'role' => $user['role'] ?? 'owner',
                 'createdAt' => $user['created_at']
             ],
             'token' => $token

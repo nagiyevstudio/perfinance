@@ -15,11 +15,15 @@ if (file_exists($envFile)) {
     }
 }
 
+$allowRegistrationValue = $_ENV['ALLOW_REGISTRATION'] ?? 'false';
+$allowRegistration = filter_var($allowRegistrationValue, FILTER_VALIDATE_BOOLEAN);
+
 return [
     'jwt_secret' => $_ENV['JWT_SECRET'] ?? 'change-this-secret-key-in-production',
     'jwt_algorithm' => 'HS256',
     'jwt_expiration' => 86400 * 7, // 7 days in seconds
     'password_algorithm' => PASSWORD_BCRYPT,
     'password_options' => ['cost' => 12],
+    'allow_registration' => $allowRegistration,
 ];
 

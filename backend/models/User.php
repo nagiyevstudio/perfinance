@@ -15,7 +15,7 @@ class User {
         $this->pdo = Database::getPDO();
     }
     
-    public function create($email, $password) {
+    public function create($email, $password, $name = null) {
         // Validate input
         if (!validateEmail($email)) {
             throw new InvalidArgumentException('Invalid email format');
@@ -23,6 +23,10 @@ class User {
         
         if (!validatePassword($password)) {
             throw new InvalidArgumentException('Password must be at least 8 characters');
+        }
+
+        if (!validateName($name)) {
+            throw new InvalidArgumentException('Name is too long');
         }
         
         // Check if user exists
@@ -36,15 +40,16 @@ class User {
         $passwordHash = hashPassword($password);
         $userId = generateUUID();
         
+        $role = 'owner';
         $stmt = $this->pdo->prepare("
-            INSERT INTO users (id, email, password_hash, created_at, updated_at)
-            VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            INSERT INTO users (id, email, name, password_hash, role, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ");
         
-        $stmt->execute([$userId, $email, $passwordHash]);
+        $stmt->execute([$userId, $email, $name, $passwordHash, $role]);
         
         // Fetch created user
-        $stmt = $this->pdo->prepare("SELECT id, email, created_at, updated_at FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, email, name, role, created_at, updated_at FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         return $stmt->fetch();
     }
@@ -56,7 +61,7 @@ class User {
     }
     
     public function findById($id) {
-        $stmt = $this->pdo->prepare("SELECT id, email, created_at, updated_at FROM users WHERE id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, email, name, role, created_at, updated_at FROM users WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }

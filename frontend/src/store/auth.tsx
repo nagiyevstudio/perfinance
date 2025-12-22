@@ -3,6 +3,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface User {
   id: string;
   email: string;
+  name?: string | null;
+  role: 'owner' | 'editor' | 'viewer';
   createdAt: string;
 }
 
@@ -19,7 +21,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) {
+      return null;
+    }
+    try {
+      const parsed = JSON.parse(stored) as User;
+      if (parsed && !parsed.role) {
+        return { ...parsed, role: 'owner' };
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('auth_token');
@@ -56,11 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (newToken: string, newUser: User) => {
     // Сохраняем токен и пользователя сразу в localStorage
+    const normalizedUser = {
+      ...newUser,
+      role: newUser.role || 'owner',
+    };
     localStorage.setItem('auth_token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
     // Затем обновляем состояние
     setToken(newToken);
-    setUser(newUser);
+    setUser(normalizedUser);
   };
 
   const logout = () => {
