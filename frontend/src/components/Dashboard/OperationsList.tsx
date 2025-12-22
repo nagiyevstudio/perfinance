@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Operation } from "../../services/api";
 import { formatCurrency, formatDateTime } from "../../utils/format";
 import MaterialIcon from "../common/MaterialIcon";
@@ -29,6 +29,57 @@ export default function OperationsList({
   const actionConfirmIcon = `${actionIconBase} bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300`;
   const actionCancelIcon = `${actionIconBase} bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-200 dark:hover:bg-white/20`;
 
+  const formatOperationCount = (count: number) => {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+    if (mod10 === 1 && mod100 !== 11) {
+      return `${count} операция`;
+    }
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} операции`;
+    }
+    return `${count} операций`;
+  };
+
+  const formatSignedAmount = (amountMinor: number) => {
+    if (amountMinor === 0) {
+      return formatCurrency(0);
+    }
+    const sign = amountMinor > 0 ? "+" : "-";
+    return `${sign}${formatCurrency(Math.abs(amountMinor))}`;
+  };
+
+  const groupedOperations = useMemo(() => {
+    const groups: Array<{
+      dateKey: string;
+      dateLabel: string;
+      totalMinor: number;
+      items: Operation[];
+    }> = [];
+
+    operations.forEach((op) => {
+      const dateKey = op.date ? op.date.slice(0, 10) : "";
+      const normalizedKey = dateKey || "unknown";
+      const lastGroup = groups[groups.length - 1];
+      const signedAmount = op.type === "expense" ? -op.amountMinor : op.amountMinor;
+
+      if (!lastGroup || lastGroup.dateKey !== normalizedKey) {
+        groups.push({
+          dateKey: normalizedKey,
+          dateLabel: normalizedKey === "unknown" ? "Без даты" : formatDateTime(normalizedKey),
+          totalMinor: signedAmount,
+          items: [op],
+        });
+        return;
+      }
+
+      lastGroup.items.push(op);
+      lastGroup.totalMinor += signedAmount;
+    });
+
+    return groups;
+  }, [operations]);
+
   const handleDelete = async (id: string) => {
     try {
       setDeletingId(id);
@@ -54,125 +105,148 @@ export default function OperationsList({
             Нет операций для отображения
           </div>
         ) : (
-          <div className="space-y-2">
-            {operations.map((op) => (
-              <div
-                key={op.id}
-                className="relative flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="space-y-6">
+            {groupedOperations.map((group, groupIndex) => (
+              <div key={`${group.dateKey}-${groupIndex}`} className="space-y-2">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {group.dateLabel}
+                  </span>
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatOperationCount(group.items.length)}
+                  </span>
+                  <span
+                    className={`text-sm font-semibold ${
+                      group.totalMinor > 0
+                        ? "text-emerald-600"
+                        : group.totalMinor < 0
+                        ? "text-red-600"
+                        : "text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    {formatSignedAmount(group.totalMinor)}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {group.items.map((op) => (
                     <div
-                      className="mt-1 h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: op.categoryColor || "#9CA3AF" }}
-                    />
-                    <div className="min-w-0 text-left pr-12 sm:pr-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className="text-sm font-semibold truncate"
-                          style={{ color: op.categoryColor || "#9CA3AF" }}
-                        >
-                          {op.categoryName}
-                        </span>
-                        <span
-                          className={`absolute top-3 right-3 sm:static inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                            op.type === "expense"
-                              ? "bg-red-500/10 text-red-700 dark:text-red-300"
-                              : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                          }`}
-                        >
-                          <MaterialIcon
-                            name={op.type === "expense" ? "expense" : "income"}
-                            className="h-3 w-3"
-                          />
-                          {op.type === "expense" ? "Расход" : "Доход"}
-                        </span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                          {formatDateTime(op.date)}
-                        </span>
-                      </div>
-                      {op.note && (
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 text-left">
-                          {op.note}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
-                    <p
-                      className={`text-[1.85rem] font-light whitespace-nowrap ${
-                        op.type === "expense" ? "text-red-600" : "text-green-600"
-                      }`}
+                      key={op.id}
+                      className="relative flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      {op.type === "expense" ? "-" : "+"}
-                      {formatCurrency(op.amountMinor)}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {deleteConfirm !== op.id && (
-                        <button
-                          onClick={() => onEdit(op)}
-                          className={actionEditIcon}
-                          aria-label="Редактировать"
-                          title="Редактировать"
-                          disabled={deletingId === op.id}
-                        >
-                          <MaterialIcon name="edit" className="h-4 w-4" />
-                        </button>
-                      )}
-                      {deleteConfirm === op.id ? (
-                        <>
-                          <div className="hidden sm:flex flex-wrap items-center gap-2">
-                            <button
-                              onClick={() => handleDelete(op.id)}
-                              className={actionConfirm}
-                              disabled={deletingId === op.id}
-                            >
-                              <MaterialIcon name="check" className="h-4 w-4" />
-                              {deletingId === op.id ? "Удаление..." : "Подтвердить"}
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className={actionCancel}
-                              disabled={deletingId === op.id}
-                            >
-                              <MaterialIcon name="close" className="h-4 w-4" />
-                              Отмена
-                            </button>
+                      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                          <div
+                            className="mt-1 h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: op.categoryColor || "#9CA3AF" }}
+                          />
+                          <div className="min-w-0 text-left pr-12 sm:pr-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className="text-sm font-semibold truncate"
+                                style={{ color: op.categoryColor || "#9CA3AF" }}
+                              >
+                                {op.categoryName}
+                              </span>
+                              <span
+                                className={`absolute top-3 right-3 sm:static inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                                  op.type === "expense"
+                                    ? "bg-red-500/10 text-red-700 dark:text-red-300"
+                                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                }`}
+                              >
+                                <MaterialIcon
+                                  name={op.type === "expense" ? "expense" : "income"}
+                                  className="h-3 w-3"
+                                />
+                                {op.type === "expense" ? "Расход" : "Доход"}
+                              </span>
+                            </div>
+                            {op.note && (
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 text-left">
+                                {op.note}
+                              </p>
+                            )}
                           </div>
-                          <div className="flex sm:hidden items-center gap-2">
-                            <button
-                              onClick={() => handleDelete(op.id)}
-                              className={actionConfirmIcon}
-                              disabled={deletingId === op.id}
-                              aria-label="Подтвердить удаление"
-                              title="Подтвердить"
-                            >
-                              <MaterialIcon name="check" className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className={actionCancelIcon}
-                              disabled={deletingId === op.id}
-                              aria-label="Отменить удаление"
-                              title="Отмена"
-                            >
-                              <MaterialIcon name="close" className="h-4 w-4" />
-                            </button>
+                        </div>
+                        <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+                          <p
+                            className={`text-[1.85rem] font-light whitespace-nowrap ${
+                              op.type === "expense" ? "text-red-600" : "text-green-600"
+                            }`}
+                          >
+                            {op.type === "expense" ? "-" : "+"}
+                            {formatCurrency(op.amountMinor)}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            {deleteConfirm !== op.id && (
+                              <button
+                                onClick={() => onEdit(op)}
+                                className={actionEditIcon}
+                                aria-label="Редактировать"
+                                title="Редактировать"
+                                disabled={deletingId === op.id}
+                              >
+                                <MaterialIcon name="edit" className="h-4 w-4" />
+                              </button>
+                            )}
+                            {deleteConfirm === op.id ? (
+                              <>
+                                <div className="hidden sm:flex flex-wrap items-center gap-2">
+                                  <button
+                                    onClick={() => handleDelete(op.id)}
+                                    className={actionConfirm}
+                                    disabled={deletingId === op.id}
+                                  >
+                                    <MaterialIcon name="check" className="h-4 w-4" />
+                                    {deletingId === op.id ? "Удаление..." : "Подтвердить"}
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirm(null)}
+                                    className={actionCancel}
+                                    disabled={deletingId === op.id}
+                                  >
+                                    <MaterialIcon name="close" className="h-4 w-4" />
+                                    Отмена
+                                  </button>
+                                </div>
+                                <div className="flex sm:hidden items-center gap-2">
+                                  <button
+                                    onClick={() => handleDelete(op.id)}
+                                    className={actionConfirmIcon}
+                                    disabled={deletingId === op.id}
+                                    aria-label="Подтвердить удаление"
+                                    title="Подтвердить"
+                                  >
+                                    <MaterialIcon name="check" className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirm(null)}
+                                    className={actionCancelIcon}
+                                    disabled={deletingId === op.id}
+                                    aria-label="Отменить удаление"
+                                    title="Отмена"
+                                  >
+                                    <MaterialIcon name="close" className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteConfirm(op.id)}
+                                className={actionDeleteIcon}
+                                aria-label="Удалить"
+                                title="Удалить"
+                                disabled={deletingId === op.id}
+                              >
+                                <MaterialIcon name="delete" className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(op.id)}
-                          className={actionDeleteIcon}
-                          aria-label="Удалить"
-                          title="Удалить"
-                          disabled={deletingId === op.id}
-                        >
-                          <MaterialIcon name="delete" className="h-4 w-4" />
-                        </button>
-                      )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             ))}

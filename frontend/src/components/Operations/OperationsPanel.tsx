@@ -1,33 +1,35 @@
-import { useEffect, useMemo, useState } from 'react';
-import MaterialIcon from '../common/MaterialIcon';
-import OperationsList from '../Dashboard/OperationsList';
-import { Operation } from '../../services/api';
-import { formatCurrency } from '../../utils/format';
-import { getCategoryStyle } from '../../utils/categoryStyle';
+import { useEffect, useMemo, useState } from "react";
+import MaterialIcon from "../common/MaterialIcon";
+import OperationsList from "../Dashboard/OperationsList";
+import { Operation } from "../../services/api";
+import { formatCurrency } from "../../utils/format";
+import { getCategoryStyle } from "../../utils/categoryStyle";
 
 const typeButtonBase =
-  'inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800';
+  "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800";
 const typeAllBase =
-  'border-gray-200 text-gray-700 bg-white/80 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800/70 dark:hover:bg-gray-800';
-const typeAllActive = 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900';
+  "border-gray-200 text-gray-700 bg-white/80 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800/70 dark:hover:bg-gray-800";
+const typeAllActive =
+  "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900";
 const typeExpenseBase =
-  'border-red-200 text-red-700 bg-red-50/60 hover:bg-red-100/70 dark:border-red-500/40 dark:text-red-200 dark:bg-red-500/10';
-const typeExpenseActive = 'bg-red-600 text-white border-red-600';
+  "border-red-200 text-red-700 bg-red-50/60 hover:bg-red-100/70 dark:border-red-500/40 dark:text-red-200 dark:bg-red-500/10";
+const typeExpenseActive = "bg-red-600 text-white border-red-600";
 const typeIncomeBase =
-  'border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/70 dark:border-emerald-500/40 dark:text-emerald-200 dark:bg-emerald-500/10';
-const typeIncomeActive = 'bg-emerald-600 text-white border-emerald-600';
+  "border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/70 dark:border-emerald-500/40 dark:text-emerald-200 dark:bg-emerald-500/10";
+const typeIncomeActive = "bg-emerald-600 text-white border-emerald-600";
 
 const chipBase =
-  'inline-flex items-center gap-2 h-9 px-3 rounded-full border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800';
+  "inline-flex items-center gap-2 h-9 px-3 rounded-full border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-800";
 const chipAllInactive =
-  'border-gray-200 text-gray-700 bg-white/80 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800/70 dark:hover:bg-gray-800';
-const chipAllActive = 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900';
+  "border-gray-200 text-gray-700 bg-white/80 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:bg-gray-800/70 dark:hover:bg-gray-800";
+const chipAllActive =
+  "bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900";
 
 interface ActiveCategory {
   id: string;
   name: string;
   color: string | null;
-  type: 'expense' | 'income';
+  type: "expense" | "income";
 }
 
 interface OperationsPanelProps {
@@ -47,11 +49,13 @@ export default function OperationsPanel({
   onEdit,
   onDelete,
 }: OperationsPanelProps) {
-  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">(
+    "all"
+  );
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
   const activeCategories = useMemo<ActiveCategory[]>(() => {
@@ -62,7 +66,7 @@ export default function OperationsPanel({
           id: op.categoryId,
           name: op.categoryName,
           color: op.categoryColor,
-          type: op.categoryType === 'expense' ? 'expense' : 'income',
+          type: op.categoryType === "expense" ? "expense" : "income",
         });
       }
     });
@@ -77,31 +81,34 @@ export default function OperationsPanel({
   }, [operations]);
 
   const visibleCategories = useMemo(() => {
-    if (typeFilter === 'all') {
+    if (typeFilter === "all") {
       return activeCategories;
     }
     return activeCategories.filter((cat) => cat.type === typeFilter);
   }, [activeCategories, typeFilter]);
 
   useEffect(() => {
-    if (categoryFilter === 'all') {
+    if (categoryFilter === "all") {
       return;
     }
-    const selectedCategory = activeCategories.find((cat) => cat.id === categoryFilter);
+    const selectedCategory = activeCategories.find(
+      (cat) => cat.id === categoryFilter
+    );
     if (!selectedCategory) {
-      setCategoryFilter('all');
+      setCategoryFilter("all");
       return;
     }
-    if (typeFilter !== 'all' && selectedCategory.type !== typeFilter) {
-      setCategoryFilter('all');
+    if (typeFilter !== "all" && selectedCategory.type !== typeFilter) {
+      setCategoryFilter("all");
     }
   }, [activeCategories, categoryFilter, typeFilter]);
 
   const filteredOperations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return operations.filter((op) => {
-      if (typeFilter !== 'all' && op.type !== typeFilter) return false;
-      if (categoryFilter !== 'all' && op.categoryId !== categoryFilter) return false;
+      if (typeFilter !== "all" && op.type !== typeFilter) return false;
+      if (categoryFilter !== "all" && op.categoryId !== categoryFilter)
+        return false;
       if (query) {
         const noteMatch = op.note?.toLowerCase().includes(query);
         const categoryMatch = op.categoryName.toLowerCase().includes(query);
@@ -114,7 +121,9 @@ export default function OperationsPanel({
     });
   }, [operations, typeFilter, categoryFilter, searchQuery, dateFrom, dateTo]);
 
-  const displayOperations = limit ? filteredOperations.slice(0, limit) : filteredOperations;
+  const displayOperations = limit
+    ? filteredOperations.slice(0, limit)
+    : filteredOperations;
 
   return (
     <div className="space-y-6">
@@ -123,24 +132,26 @@ export default function OperationsPanel({
           <button
             type="button"
             onClick={() => {
-              setTypeFilter('all');
-              setCategoryFilter('all');
+              setTypeFilter("all");
+              setCategoryFilter("all");
             }}
-            className={`${typeButtonBase} ${typeFilter === 'all' ? typeAllActive : typeAllBase}`}
-            aria-pressed={typeFilter === 'all'}
+            className={`${typeButtonBase} ${
+              typeFilter === "all" ? typeAllActive : typeAllBase
+            }`}
+            aria-pressed={typeFilter === "all"}
           >
             Все
           </button>
           <button
             type="button"
             onClick={() => {
-              setTypeFilter('expense');
-              setCategoryFilter('all');
+              setTypeFilter("expense");
+              setCategoryFilter("all");
             }}
             className={`${typeButtonBase} ${
-              typeFilter === 'expense' ? typeExpenseActive : typeExpenseBase
+              typeFilter === "expense" ? typeExpenseActive : typeExpenseBase
             }`}
-            aria-pressed={typeFilter === 'expense'}
+            aria-pressed={typeFilter === "expense"}
           >
             <MaterialIcon name="expense" className="h-4 w-4" />
             Расходы
@@ -148,13 +159,13 @@ export default function OperationsPanel({
           <button
             type="button"
             onClick={() => {
-              setTypeFilter('income');
-              setCategoryFilter('all');
+              setTypeFilter("income");
+              setCategoryFilter("all");
             }}
             className={`${typeButtonBase} ${
-              typeFilter === 'income' ? typeIncomeActive : typeIncomeBase
+              typeFilter === "income" ? typeIncomeActive : typeIncomeBase
             }`}
-            aria-pressed={typeFilter === 'income'}
+            aria-pressed={typeFilter === "income"}
           >
             <MaterialIcon name="income" className="h-4 w-4" />
             Доходы
@@ -212,15 +223,17 @@ export default function OperationsPanel({
             <div className="mt-2 flex flex-wrap gap-2 justify-start">
               <button
                 type="button"
-                onClick={() => setCategoryFilter('all')}
-                className={`${chipBase} ${categoryFilter === 'all' ? chipAllActive : chipAllInactive}`}
-                aria-pressed={categoryFilter === 'all'}
+                onClick={() => setCategoryFilter("all")}
+                className={`${chipBase} ${
+                  categoryFilter === "all" ? chipAllActive : chipAllInactive
+                }`}
+                aria-pressed={categoryFilter === "all"}
               >
                 Все
               </button>
               {visibleCategories.map((cat) => {
                 const isActive = categoryFilter === cat.id;
-                const iconName = cat.type === 'expense' ? 'expense' : 'income';
+                const iconName = cat.type === "expense" ? "expense" : "income";
                 return (
                   <button
                     key={cat.id}
@@ -231,8 +244,9 @@ export default function OperationsPanel({
                     aria-pressed={isActive}
                   >
                     <MaterialIcon name={iconName} className="h-3.5 w-3.5" />
-                    {cat.name}
-                    <span className="text-[11px] font-normal opacity-80">
+                    <span className="font-normal">{cat.name}</span>
+
+                    <span className="text-[12px] font-bold opacity-80">
                       {formatCurrency(categoryTotals[cat.id] || 0)}
                     </span>
                   </button>
@@ -243,41 +257,41 @@ export default function OperationsPanel({
 
           {showSearch && (
             <div className="grid gap-3 md:grid-cols-3">
-            <div className="min-w-0">
-              <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Поиск
-              </label>
-              <input
-                type="text"
-                placeholder="Поиск по заметке или категории"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pf-input mt-2"
-              />
+              <div className="min-w-0">
+                <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  Поиск
+                </label>
+                <input
+                  type="text"
+                  placeholder="Поиск по заметке или категории"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pf-input mt-2"
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  С даты
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="pf-input mt-2"
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  По дату
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="pf-input mt-2"
+                />
+              </div>
             </div>
-            <div className="min-w-0">
-              <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                С даты
-              </label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="pf-input mt-2"
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                По дату
-              </label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="pf-input mt-2"
-              />
-            </div>
-          </div>
           )}
         </div>
       </div>
