@@ -1,7 +1,7 @@
 {
   "name": "perfinance-frontend",
   "private": true,
-  "version": "1.0.014",
+  "version": "1.0.017",
   "type": "module",
   "scripts": {
     "dev": "vite",
