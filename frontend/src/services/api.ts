@@ -333,9 +333,14 @@ export interface YearlyIncomeAnalyticsData {
   }>;
 }
 
+export interface IncomeYearsData {
+  years: string[];
+}
+
 export const analyticsApi = {
   get: (month: string) => api.get<AnalyticsData>('/analytics', { month }),
   getYearIncome: (year: string) => api.get<YearlyIncomeAnalyticsData>('/analytics', { year }),
+  getIncomeYears: () => api.get<IncomeYearsData>('/analytics', { years: 'income' }),
 };
 
 // Export API

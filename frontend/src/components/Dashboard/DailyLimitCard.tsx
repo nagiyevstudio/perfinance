@@ -1,5 +1,6 @@
 import { formatCurrency } from '../../utils/format';
 import MaterialIcon from '../common/MaterialIcon';
+import { useI18n } from '../../i18n';
 
 interface DailyLimitCardProps {
   daysLeft: number;
@@ -16,6 +17,7 @@ export default function DailyLimitCard({
   isOverBudget,
   isLoading,
 }: DailyLimitCardProps) {
+  const { t } = useI18n();
   if (isLoading) {
     return (
       <div className="bg-white dark:bg-[#1a1a1a] overflow-hidden shadow rounded-lg">
@@ -68,7 +70,7 @@ export default function DailyLimitCard({
             <div className="ml-5 min-w-0">
               <dl>
                 <dt className="text-sm font-medium text-gray-500 dark:text-[#a3a3a3] truncate">
-                  Дневной лимит
+                  {t('dailyLimit.title')}
                 </dt>
                 <dd
                   className={`text-lg font-medium ${
@@ -77,7 +79,7 @@ export default function DailyLimitCard({
                       : 'text-[#d27b30] dark:text-[#f0b27a]'
                   }`}
                 >
-                  {daysLeft > 0 ? formatCurrency(dailyLimitMinor) : 'н/д'}
+                  {daysLeft > 0 ? formatCurrency(dailyLimitMinor) : t('common.notAvailable')}
                 </dd>
               </dl>
             </div>
@@ -85,7 +87,9 @@ export default function DailyLimitCard({
         </div>
         <div className="mt-4">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-[#a3a3a3]">Потрачено сегодня:</span>
+            <span className="text-gray-600 dark:text-[#a3a3a3]">
+              {t('dailyLimit.spentToday')}
+            </span>
             <span
               className={`font-medium ${
                 isOverDailyLimit || (dailyLimitMinor === 0 && todayExpenseSum > 0)
@@ -97,14 +101,16 @@ export default function DailyLimitCard({
             </span>
           </div>
           <div className="mt-2 flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-[#a3a3a3]">Оставшихся дней:</span>
+            <span className="text-gray-600 dark:text-[#a3a3a3]">
+              {t('dailyLimit.daysLeft')}
+            </span>
             <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">{daysLeft}</span>
           </div>
           {daysLeft > 0 && (
             <div className="mt-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-medium text-gray-700 dark:text-[#d4d4d8]">
-                  Прогресс: {percentage.toFixed(1)}%
+                  {t('dailyLimit.progress', { value: percentage.toFixed(1) })}
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-[#1f1f1f] rounded-full h-2">
@@ -124,7 +130,7 @@ export default function DailyLimitCard({
           {isOverBudget && (
             <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
               <p className="text-sm text-red-800 dark:text-red-200 font-medium">
-                ?? Превышен бюджет месяца!
+                {t('dailyLimit.overBudget')}
               </p>
             </div>
           )}

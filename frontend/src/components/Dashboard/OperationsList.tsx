@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Operation } from "../../services/api";
 import { formatCurrency, formatCurrencyParts, formatDateTime } from "../../utils/format";
 import MaterialIcon from "../common/MaterialIcon";
+import { useI18n } from "../../i18n";
 
 interface OperationsListProps {
   operations: Operation[];
@@ -16,6 +17,7 @@ export default function OperationsList({
   onDelete,
   isLoading,
 }: OperationsListProps) {
+  const { t, tPlural } = useI18n();
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const actionBase =
@@ -33,17 +35,8 @@ export default function OperationsList({
   const actionCancelIcon =
     `${actionIconBase} bg-slate-200/70 text-slate-700 hover:bg-slate-200 dark:bg-[#1f1f1f]/70 dark:text-[#d4d4d8] dark:hover:bg-[#252525]`;
 
-  const formatOperationCount = (count: number) => {
-    const mod10 = count % 10;
-    const mod100 = count % 100;
-    if (mod10 === 1 && mod100 !== 11) {
-      return `${count} операция`;
-    }
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-      return `${count} операции`;
-    }
-    return `${count} операций`;
-  };
+  const formatOperationCount = (count: number) =>
+    tPlural("operations.count", count, { count });
 
   const formatSignedAmount = (amountMinor: number) => {
     if (amountMinor === 0) {
@@ -91,7 +84,8 @@ export default function OperationsList({
       if (!lastGroup || lastGroup.dateKey !== normalizedKey) {
         groups.push({
           dateKey: normalizedKey,
-          dateLabel: normalizedKey === "unknown" ? "Без даты" : formatDateTime(normalizedKey),
+          dateLabel:
+            normalizedKey === "unknown" ? t("operations.noDate") : formatDateTime(normalizedKey),
           totalMinor: signedAmount,
           items: [op],
         });
@@ -151,7 +145,7 @@ export default function OperationsList({
         {/* Operations */}
         {operations.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-            Нет операций для отображения
+            {t("operations.empty")}
           </div>
         ) : (
           <div className="space-y-6">
@@ -208,7 +202,9 @@ export default function OperationsList({
                                   name={op.type === "expense" ? "expense" : "income"}
                                   className="h-3 w-3"
                                 />
-                                {op.type === "expense" ? "Расход" : "Доход"}
+                                {op.type === "expense"
+                                  ? t("operations.typeExpense")
+                                  : t("operations.typeIncome")}
                               </span>
                             </div>
                             {op.note && (
@@ -231,8 +227,8 @@ export default function OperationsList({
                               <button
                                 onClick={() => onEdit(op)}
                                 className={actionEditIcon}
-                                aria-label="Редактировать"
-                                title="Редактировать"
+                                aria-label={t("common.edit")}
+                                title={t("common.edit")}
                                 disabled={deletingId === op.id}
                               >
                                 <MaterialIcon name="edit" className="h-4 w-4" />
@@ -247,7 +243,9 @@ export default function OperationsList({
                                     disabled={deletingId === op.id}
                                   >
                                     <MaterialIcon name="check" className="h-4 w-4" />
-                                    {deletingId === op.id ? "Удаление..." : "Подтвердить"}
+                                    {deletingId === op.id
+                                      ? t("common.deleting")
+                                      : t("common.confirm")}
                                   </button>
                                   <button
                                     onClick={() => setDeleteConfirm(null)}
@@ -255,7 +253,7 @@ export default function OperationsList({
                                     disabled={deletingId === op.id}
                                   >
                                     <MaterialIcon name="close" className="h-4 w-4" />
-                                    Отмена
+                                    {t("common.cancel")}
                                   </button>
                                 </div>
                                 <div className="flex sm:hidden items-center gap-2">
@@ -263,8 +261,8 @@ export default function OperationsList({
                                     onClick={() => handleDelete(op.id)}
                                     className={actionConfirmIcon}
                                     disabled={deletingId === op.id}
-                                    aria-label="Подтвердить удаление"
-                                    title="Подтвердить"
+                                    aria-label={t("operations.confirmDelete")}
+                                    title={t("common.confirm")}
                                   >
                                     <MaterialIcon name="check" className="h-4 w-4" />
                                   </button>
@@ -272,8 +270,8 @@ export default function OperationsList({
                                     onClick={() => setDeleteConfirm(null)}
                                     className={actionCancelIcon}
                                     disabled={deletingId === op.id}
-                                    aria-label="Отменить удаление"
-                                    title="Отмена"
+                                    aria-label={t("operations.cancelDelete")}
+                                    title={t("common.cancel")}
                                   >
                                     <MaterialIcon name="close" className="h-4 w-4" />
                                   </button>
@@ -283,8 +281,8 @@ export default function OperationsList({
                               <button
                                 onClick={() => setDeleteConfirm(op.id)}
                                 className={actionDeleteIcon}
-                                aria-label="Удалить"
-                                title="Удалить"
+                                aria-label={t("common.delete")}
+                                title={t("common.delete")}
                                 disabled={deletingId === op.id}
                               >
                                 <MaterialIcon name="delete" className="h-4 w-4" />

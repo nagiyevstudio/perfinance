@@ -2,12 +2,24 @@
  * Format utility functions
  */
 
-const currencyFormatter = new Intl.NumberFormat('ru-RU', {
-  style: 'decimal',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+import { getLocale } from '../i18n';
+
 const currencySymbol = '₼';
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
+const getCurrencyFormatter = (locale: string) => {
+  const cached = formatterCache.get(locale);
+  if (cached) {
+    return cached;
+  }
+  const formatter = new Intl.NumberFormat(locale, {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  formatterCache.set(locale, formatter);
+  return formatter;
+};
 
 export interface CurrencyParts {
   sign: string;
@@ -19,7 +31,8 @@ export interface CurrencyParts {
 
 export function formatCurrencyParts(amountMinor: number): CurrencyParts {
   const amount = amountMinor / 100;
-  const parts = currencyFormatter.formatToParts(amount);
+  const locale = getLocale();
+  const parts = getCurrencyFormatter(locale).formatToParts(amount);
   let sign = '';
   let integer = '';
   let fraction = '';
@@ -66,7 +79,7 @@ export function formatCurrency(amountMinor: number): string {
 }
 
 export function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ru-RU', {
+  return new Date(date).toLocaleDateString(getLocale(), {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -79,38 +92,31 @@ export function formatDateTime(date: string): string {
     return date;
   }
 
-  const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2})?)?$/
-  );
-
-  if (match) {
-    const [, year, month, day, hours, minutes] = match;
-    const shortYear = year.slice(-2);
-    if (!hours || !minutes) {
-      return `${day}.${month}.${shortYear}`;
-    }
-    return `${day}.${month}.${shortYear} - ${hours}:${minutes}`;
-  }
-
-  const parsed = new Date(normalized);
+  const parsed = new Date(normalized.replace(' ', 'T'));
   if (Number.isNaN(parsed.getTime())) {
     return date;
   }
-
-  const pad = (value: number) => String(value).padStart(2, '0');
-  const day = pad(parsed.getDate());
-  const month = pad(parsed.getMonth() + 1);
-  const year = String(parsed.getFullYear()).slice(-2);
-  const hours = pad(parsed.getHours());
-  const minutes = pad(parsed.getMinutes());
-
-  return `${day}.${month}.${year} - ${hours}:${minutes}`;
+  const locale = getLocale();
+  const hasTime = /[T ]\d{2}:\d{2}/.test(normalized);
+  const datePart = parsed.toLocaleDateString(locale, {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  if (!hasTime) {
+    return datePart;
+  }
+  const timePart = parsed.toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `${datePart} ${timePart}`;
 }
 
 export function formatMonth(month: string): string {
   const [year, monthNum] = month.split('-');
   const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
-  return date.toLocaleDateString('ru-RU', {
+  return date.toLocaleDateString(getLocale(), {
     year: 'numeric',
     month: 'long',
   });
@@ -138,4 +144,3 @@ export function getNextMonth(month: string): string {
   const newMonth = String(date.getMonth() + 1).padStart(2, '0');
   return `${newYear}-${newMonth}`;
 }
-

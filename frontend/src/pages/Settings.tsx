@@ -5,13 +5,16 @@ import { useAuth } from '../store/auth';
 import { authApi, exportApi } from '../services/api';
 import { getCurrentMonth } from '../utils/format';
 import { applyTheme, getStoredTheme, setStoredTheme, type ThemePreference } from '../utils/theme';
+import { useI18n } from '../i18n';
 
 export default function Settings() {
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useI18n();
   const [exportMonth, setExportMonth] = useState(getCurrentMonth());
   const [isExporting, setIsExporting] = useState(false);
   const [exportAll, setExportAll] = useState(false);
   const [themePreference, setThemePreference] = useState<ThemePreference>(getStoredTheme());
+  const appVersion = __APP_VERSION__ || '-';
 
   useEffect(() => {
     setStoredTheme(themePreference);
@@ -25,9 +28,15 @@ export default function Settings() {
   const themeButtonActive =
     'bg-[#d27b30] text-white border-[#d27b30] shadow-sm';
   const themeOptions: { value: ThemePreference; label: string }[] = [
-    { value: 'light', label: 'Светлая' },
-    { value: 'dark', label: 'Темная' },
-    { value: 'auto', label: 'Авто' },
+    { value: 'light', label: t('settings.themeLight') },
+    { value: 'dark', label: t('settings.themeDark') },
+    { value: 'auto', label: t('settings.themeAuto') },
+  ];
+
+  const languageOptions: { value: 'ru' | 'az' | 'en'; label: string }[] = [
+    { value: 'ru', label: t('settings.languageRu') },
+    { value: 'az', label: t('settings.languageAz') },
+    { value: 'en', label: t('settings.languageEn') },
   ];
 
   const handleLogout = async () => {
@@ -46,7 +55,7 @@ export default function Settings() {
       await exportApi.json(exportAll ? undefined : exportMonth);
     } catch (error) {
       console.error('Export error:', error);
-      alert('Ошибка при экспорте данных');
+      alert(t('settings.exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -58,7 +67,7 @@ export default function Settings() {
       await exportApi.csv(exportAll ? undefined : exportMonth);
     } catch (error) {
       console.error('Export error:', error);
-      alert('Ошибка при экспорте данных');
+      alert(t('settings.exportError'));
     } finally {
       setIsExporting(false);
     }
@@ -70,14 +79,16 @@ export default function Settings() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">Профиль</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.profileTitle')}
+              </h2>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-[#d27b30]/10 text-[#d27b30] flex items-center justify-center">
                   <MaterialIcon name="settings" className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                    Имя
+                    {t('settings.profileName')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-[#e5e7eb]">
                     {user?.name?.trim() || '—'}
@@ -85,7 +96,7 @@ export default function Settings() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                    Email
+                    {t('settings.profileEmail')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-[#e5e7eb]">
                     {user?.email}
@@ -93,10 +104,10 @@ export default function Settings() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                    Роль
+                    {t('settings.profileRole')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-[#e5e7eb]">
-                    {user?.role || '—'}
+                    {user?.role ? t(`roles.${user.role}`) : '-'}
                   </div>
                 </div>
               </div>
@@ -104,7 +115,7 @@ export default function Settings() {
 
             <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
               <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
-                Экспорт данных
+                {t('settings.exportTitle')}
               </h2>
               <div className="space-y-4">
                 <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-[#d4d4d8]">
@@ -114,13 +125,13 @@ export default function Settings() {
                     onChange={(e) => setExportAll(e.target.checked)}
                     className="pf-checkbox"
                   />
-                  Экспортировать все данные
+                  {t('settings.exportAll')}
                 </label>
 
                 {!exportAll && (
                   <div>
                     <label className="block text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3] mb-2">
-                      Месяц для экспорта
+                      {t('settings.exportMonth')}
                     </label>
                     <input
                       type="month"
@@ -138,7 +149,7 @@ export default function Settings() {
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#d27b30] text-white hover:bg-[#b56726] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <MaterialIcon name="archive" className="h-4 w-4" />
-                    {isExporting ? 'Экспорт...' : 'Экспорт JSON'}
+                    {isExporting ? t('settings.exporting') : t('settings.exportJson')}
                   </button>
                   <button
                     onClick={handleExportCSV}
@@ -146,7 +157,7 @@ export default function Settings() {
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#d27b30] text-[#d27b30] hover:bg-[#d27b30]/10 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <MaterialIcon name="archive" className="h-4 w-4" />
-                    {isExporting ? 'Экспорт...' : 'Экспорт CSV'}
+                    {isExporting ? t('settings.exporting') : t('settings.exportCsv')}
                   </button>
                 </div>
               </div>
@@ -155,7 +166,9 @@ export default function Settings() {
 
           <div className="space-y-6">
             <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">Тема</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.themeTitle')}
+              </h2>
               <div className="flex flex-wrap gap-2">
                 {themeOptions.map((option) => {
                   const isActive = themePreference === option.value;
@@ -180,26 +193,72 @@ export default function Settings() {
                 })}
               </div>
               <p className="mt-3 text-xs text-gray-500 dark:text-[#a3a3a3]">
-                Авто — как в системе.
+                {t('settings.themeHint')}
               </p>
             </div>
 
             <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">Валюта</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.currencyTitle')}
+              </h2>
               <p className="text-sm text-gray-600 dark:text-[#a3a3a3]">
-                Текущая валюта: <span className="font-medium">₼ (Азербайджанский манат)</span>
+                {t('settings.currencyLabel')}{' '}
+                <span className="font-medium">
+                  {t('settings.currencyName', { currency: '₼' })}
+                </span>
               </p>
             </div>
 
             <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">Сессия</h2>
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.versionTitle')}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-[#a3a3a3]">
+                {t('settings.versionLabel')}{' '}
+                <span className="font-medium">{appVersion}</span>
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.sessionTitle')}
+              </h2>
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-700 hover:bg-red-500/20 dark:text-red-300"
               >
                 <MaterialIcon name="logout" className="h-4 w-4" />
-                Выйти
+                {t('settings.logout')}
               </button>
+            </div>
+
+            <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
+                {t('settings.languageTitle')}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {languageOptions.map((option) => {
+                  const isActive = language === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`${themeButtonBase} ${
+                        isActive ? themeButtonActive : themeButtonInactive
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="language"
+                        value={option.value}
+                        checked={isActive}
+                        onChange={() => setLanguage(option.value)}
+                        className="sr-only"
+                      />
+                      {option.label}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

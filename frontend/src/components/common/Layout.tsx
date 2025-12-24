@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
 import MaterialIcon from './MaterialIcon';
 import logoUrl from '../../assets/perfin-logo.png';
+import { useI18n } from '../../i18n';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,17 +13,18 @@ export default function Layout({ children }: LayoutProps) {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pullStartY = useRef<number | null>(null);
   const refreshThreshold = 70;
 
   const navItems = [
-    { path: '/', label: 'Главная', icon: 'home' },
-    { path: '/operations', label: 'Операции', icon: 'list' },
-    { path: '/categories', label: 'Категории', icon: 'grid' },
-    { path: '/analytics', label: 'Аналитика', icon: 'chart' },
-    { path: '/settings', label: 'Настройки', icon: 'settings' },
+    { path: '/', label: t('nav.home'), icon: 'home' },
+    { path: '/operations', label: t('nav.operations'), icon: 'list' },
+    { path: '/categories', label: t('nav.categories'), icon: 'grid' },
+    { path: '/analytics', label: t('nav.analytics'), icon: 'chart' },
+    { path: '/settings', label: t('nav.settings'), icon: 'settings' },
   ] as const;
 
   const handleLogoClick = () => {
@@ -30,9 +32,12 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const sectionTitle =
-    navItems.find((item) => item.path === location.pathname)?.label ?? 'PerFinance';
-  const displayName = user?.name?.trim() ? user.name : user?.email;
-  const roleLabel = user?.role ? `(${user.role})` : '';
+    navItems.find((item) => item.path === location.pathname)?.label ?? t('common.appName');
+  const displayName = user?.name?.trim();
+
+  useEffect(() => {
+    document.title = `${sectionTitle} · ${t('common.appName')}`;
+  }, [sectionTitle, t]);
 
   const handleTouchStart = (event: React.TouchEvent) => {
     if (isRefreshing) return;
@@ -78,7 +83,7 @@ export default function Layout({ children }: LayoutProps) {
                   onClick={handleLogoClick}
                   className="flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] rounded-md"
                 >
-                  <img src={logoUrl} alt="PerFinance" className="h-8 w-auto" />
+                  <img src={logoUrl} alt={t('common.appName')} className="h-8 w-auto" />
                   <span className="text-base sm:text-lg font-semibold tracking-wide text-gray-900 dark:text-[#e5e7eb]">
                     {sectionTitle}
                   </span>
@@ -101,9 +106,11 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
             <div className="flex items-center">
-              <span className="hidden sm:inline text-sm text-gray-700 dark:text-[#d4d4d8] mr-4">
-                {displayName} {roleLabel}
-              </span>
+              {displayName ? (
+                <span className="hidden sm:inline text-sm text-gray-700 dark:text-[#d4d4d8] mr-4">
+                  {displayName}
+                </span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -122,10 +129,10 @@ export default function Layout({ children }: LayoutProps) {
         >
           <span className={pullDistance > 0 ? 'pb-2' : 'sr-only'}>
             {isRefreshing
-              ? 'Обновляем...'
+              ? t('layout.refreshing')
               : pullDistance >= refreshThreshold
-              ? 'Отпустите для обновления'
-              : 'Потяните вниз для обновления'}
+              ? t('layout.releaseToRefresh')
+              : t('layout.pullToRefresh')}
           </span>
         </div>
         {children}

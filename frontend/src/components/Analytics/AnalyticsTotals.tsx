@@ -1,5 +1,6 @@
 import MaterialIcon from '../common/MaterialIcon';
 import { formatCurrency } from '../../utils/format';
+import { useI18n } from '../../i18n';
 
 interface AnalyticsTotalsProps {
   totals?: {
@@ -11,6 +12,7 @@ interface AnalyticsTotalsProps {
 }
 
 export default function AnalyticsTotals({ totals, isLoading }: AnalyticsTotalsProps) {
+  const { t } = useI18n();
   if (isLoading) {
     return (
       <div className="bg-white dark:bg-[#1a1a1a] rounded-lg shadow">
@@ -41,7 +43,7 @@ export default function AnalyticsTotals({ totals, isLoading }: AnalyticsTotalsPr
         <div className="flex flex-1 items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4">
           <MaterialIcon name="income" className="h-4 w-4 text-emerald-500" />
           <span className="hidden sm:inline text-sm font-medium text-gray-500 dark:text-[#a3a3a3]">
-            Доходы:
+            {t('analyticsTotals.income')}
           </span>
           <span className="text-sm sm:text-xl font-semibold text-emerald-600 whitespace-nowrap">
             {formatCurrency(safeTotals.incomeMinor)}
@@ -50,7 +52,7 @@ export default function AnalyticsTotals({ totals, isLoading }: AnalyticsTotalsPr
         <div className="flex flex-1 items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4">
           <MaterialIcon name="expense" className="h-4 w-4 text-red-500" />
           <span className="hidden sm:inline text-sm font-medium text-gray-500 dark:text-[#a3a3a3]">
-            Расходы:
+            {t('analyticsTotals.expense')}
           </span>
           <span className="text-sm sm:text-xl font-semibold text-red-600 whitespace-nowrap">
             {formatCurrency(safeTotals.expenseMinor)}
@@ -59,7 +61,7 @@ export default function AnalyticsTotals({ totals, isLoading }: AnalyticsTotalsPr
         <div className="flex flex-1 items-center justify-center gap-1 sm:gap-2 px-3 py-3 sm:py-4">
           <MaterialIcon name="wallet" className="h-4 w-4 text-[#d27b30] dark:text-[#f0b27a]" />
           <span className="hidden sm:inline text-sm font-medium text-gray-500 dark:text-[#a3a3a3]">
-            Итого:
+            {t('analyticsTotals.net')}
           </span>
           <span className="text-sm sm:text-xl font-semibold text-[#d27b30] dark:text-[#f0b27a] whitespace-nowrap">
             {formatCurrency(safeTotals.netMinor)}

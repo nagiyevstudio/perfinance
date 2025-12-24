@@ -4,18 +4,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Category, CreateOperationRequest } from '../../services/api';
 import MaterialIcon from '../common/MaterialIcon';
+import { useI18n } from '../../i18n';
 
-const operationSchema = z.object({
-  type: z.enum(['expense', 'income']),
-  amountMinor: z.number().positive('Сумма должна быть положительной'),
-  categoryId: z.string().uuid('Выберите категорию'),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Некорректная дата и время'),
-  note: z.string().optional(),
-});
-
-type OperationFormData = z.infer<typeof operationSchema>;
+type OperationFormData = {
+  type: 'expense' | 'income';
+  amountMinor: number;
+  categoryId: string;
+  date: string;
+  note?: string;
+};
 
 interface OperationFormProps {
   operation?: {
@@ -110,6 +107,7 @@ export default function OperationForm({
   onCancel,
   onDelete,
 }: OperationFormProps) {
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isAmountFocused, setIsAmountFocused] = useState(false);
@@ -128,6 +126,23 @@ export default function OperationForm({
     `${typeButtonBase} border-red-200 text-red-700 bg-red-50/60 hover:bg-red-100/70 dark:border-red-500/40 dark:text-red-200 dark:bg-red-500/10 peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600`;
   const typeIncome =
     `${typeButtonBase} border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/70 dark:border-emerald-500/40 dark:text-emerald-200 dark:bg-emerald-500/10 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600`;
+
+  const operationSchema = useMemo(
+    () =>
+      z.object({
+        type: z.enum(['expense', 'income']),
+        amountMinor: z.number().positive(t('operationForm.validation.amountPositive')),
+        categoryId: z.string().uuid(t('operationForm.validation.categoryRequired')),
+        date: z
+          .string()
+          .regex(
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+            t('operationForm.validation.dateInvalid')
+          ),
+        note: z.string().optional(),
+      }),
+    [t]
+  );
 
   const {
     register,
@@ -231,19 +246,19 @@ export default function OperationForm({
           type="button"
           onClick={onCancel}
           className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 dark:text-[#d4d4d8] dark:hover:bg-[#252525] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30]"
-          aria-label="Закрыть"
-          title="Закрыть"
+          aria-label={t('common.close')}
+          title={t('common.close')}
         >
           <MaterialIcon name="close" className="h-7 w-7" />
         </button>
         <h3 className="text-lg font-bold text-gray-900 dark:text-[#e5e7eb] mb-6">
-          {operation ? 'Редактировать операцию' : 'Добавить операцию'}
+          {operation ? t('operationForm.editTitle') : t('operationForm.addTitle')}
         </h3>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">
-              Тип
+              {t('operationForm.type')}
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
               <label>
@@ -253,7 +268,7 @@ export default function OperationForm({
                   {...register('type')}
                   className="peer sr-only"
                 />
-                <span className={typeExpense}>Расход</span>
+                <span className={typeExpense}>{t('operations.typeExpense')}</span>
               </label>
               <label>
                 <input
@@ -262,7 +277,7 @@ export default function OperationForm({
                   {...register('type')}
                   className="peer sr-only"
                 />
-                <span className={typeIncome}>Доход</span>
+                <span className={typeIncome}>{t('operations.typeIncome')}</span>
               </label>
             </div>
             {errors.type && <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>}
@@ -270,7 +285,7 @@ export default function OperationForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">
-              Сумма
+              {t('operationForm.amount')}
             </label>
             <div className="relative mt-2">
               <input
@@ -328,13 +343,13 @@ export default function OperationForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">
-              Категория
+              {t('operationForm.category')}
             </label>
             <select
               {...register('categoryId')}
               className="pf-select mt-1"
             >
-              <option value="">Выберите категорию</option>
+              <option value="">{t('operationForm.categoryPlaceholder')}</option>
               {currentFilteredCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -348,7 +363,7 @@ export default function OperationForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">
-              Дата и время
+              {t('operationForm.dateTime')}
             </label>
             <input
               type="datetime-local"
@@ -360,7 +375,7 @@ export default function OperationForm({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-[#d4d4d8]">
-              Заметка
+              {t('operationForm.note')}
             </label>
             <textarea
               {...register('note')}
@@ -370,7 +385,7 @@ export default function OperationForm({
             {noteSuggestions.length > 0 && (
               <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 dark:text-[#a3a3a3]">
                 <span className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-[#ad8f7a]">
-                  Подсказки
+                  {t('operationForm.suggestions')}
                 </span>
                 {noteSuggestions.map((note, index) => (
                   <span
@@ -406,7 +421,7 @@ export default function OperationForm({
                       className={actionDelete}
                     >
                       <MaterialIcon name="delete" className="h-4 w-4" />
-                      Удалить
+                      {t('common.delete')}
                     </button>
                   ) : (
                     <div className="flex flex-wrap items-center gap-2">
@@ -417,7 +432,7 @@ export default function OperationForm({
                         className={`${actionConfirm} disabled:opacity-50`}
                       >
                         <MaterialIcon name="check" className="h-4 w-4" />
-                        Подтвердить
+                        {t('common.confirm')}
                       </button>
                       <button
                         type="button"
@@ -425,7 +440,7 @@ export default function OperationForm({
                         className={actionCancel}
                       >
                         <MaterialIcon name="close" className="h-4 w-4" />
-                        Отмена
+                        {t('common.cancel')}
                       </button>
                     </div>
                   )}
@@ -439,7 +454,7 @@ export default function OperationForm({
                 className={actionCancel}
               >
                 <MaterialIcon name="close" className="h-4 w-4" />
-                Отмена
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -447,7 +462,7 @@ export default function OperationForm({
                 className={`${actionPrimary} disabled:opacity-50`}
               >
                 <MaterialIcon name="check" className="h-4 w-4" />
-                {isLoading ? 'Сохранение...' : 'Сохранить'}
+                {isLoading ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>

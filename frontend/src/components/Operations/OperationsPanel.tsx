@@ -4,6 +4,7 @@ import OperationsList from "../Dashboard/OperationsList";
 import { Operation } from "../../services/api";
 import { formatCurrency } from "../../utils/format";
 import { getCategoryStyle } from "../../utils/categoryStyle";
+import { useI18n } from "../../i18n";
 
 const typeButtonBase =
   "inline-flex items-center justify-center gap-2 h-10 px-4 rounded-full border text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#1a1a1a]";
@@ -49,6 +50,7 @@ export default function OperationsPanel({
   onEdit,
   onDelete,
 }: OperationsPanelProps) {
+  const { t } = useI18n();
   const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">(
     "all"
   );
@@ -140,7 +142,7 @@ export default function OperationsPanel({
             }`}
             aria-pressed={typeFilter === "all"}
           >
-            Все
+            {t("filters.all")}
           </button>
           <button
             type="button"
@@ -154,7 +156,7 @@ export default function OperationsPanel({
             aria-pressed={typeFilter === "expense"}
           >
             <MaterialIcon name="expense" className="h-4 w-4" />
-            Расходы
+            {t("filters.expenses")}
           </button>
           <button
             type="button"
@@ -168,15 +170,15 @@ export default function OperationsPanel({
             aria-pressed={typeFilter === "income"}
           >
             <MaterialIcon name="income" className="h-4 w-4" />
-            Доходы
+            {t("filters.income")}
           </button>
           <button
             type="button"
             onClick={() => setShowSearch((prev) => !prev)}
             className="sm:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-[#2a2a2a] dark:text-[#d4d4d8] dark:hover:bg-[#212121] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30]"
             aria-pressed={showSearch}
-            aria-label="Поиск и фильтр по дате"
-            title="Поиск и фильтр по дате"
+            aria-label={t("filters.searchAndDate")}
+            title={t("filters.searchAndDate")}
           >
             <MaterialIcon name="search" className="h-5 w-5" />
           </button>
@@ -187,8 +189,8 @@ export default function OperationsPanel({
             onClick={() => setShowSearch((prev) => !prev)}
             className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-[#2a2a2a] dark:text-[#d4d4d8] dark:hover:bg-[#212121] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30]"
             aria-pressed={showSearch}
-            aria-label="Поиск и фильтр по дате"
-            title="Поиск и фильтр по дате"
+            aria-label={t("filters.searchAndDate")}
+            title={t("filters.searchAndDate")}
           >
             <MaterialIcon name="search" className="h-5 w-5" />
           </button>
@@ -198,7 +200,7 @@ export default function OperationsPanel({
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#d27b30] text-white rounded-full hover:bg-[#b56726] text-sm"
             >
               <MaterialIcon name="add" className="h-4 w-4" />
-              Добавить операцию
+              {t("operations.add")}
             </button>
           )}
         </div>
@@ -208,7 +210,7 @@ export default function OperationsPanel({
         <button
           onClick={onAdd}
           className="sm:hidden fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-6 z-50 h-14 w-14 rounded-full bg-[#d27b30] text-white shadow-lg shadow-[#d27b30]/30 hover:bg-[#b56726] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30]"
-          aria-label="Добавить операцию"
+          aria-label={t("operations.add")}
         >
           <MaterialIcon name="add" className="h-6 w-6 mx-auto" />
         </button>
@@ -218,7 +220,7 @@ export default function OperationsPanel({
         <div className="space-y-6">
           <div>
             <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-              Категории
+              {t("filters.categories")}
             </p>
             <div className="mt-2 flex flex-wrap gap-2 justify-start">
               <button
@@ -229,7 +231,7 @@ export default function OperationsPanel({
                 }`}
                 aria-pressed={categoryFilter === "all"}
               >
-                Все
+                {t("filters.all")}
               </button>
               {visibleCategories.map((cat) => {
                 const isActive = categoryFilter === cat.id;
@@ -259,11 +261,11 @@ export default function OperationsPanel({
             <div className="grid gap-3 md:grid-cols-3">
               <div className="min-w-0">
                 <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                  Поиск
+                  {t("filters.search")}
                 </label>
                 <input
                   type="text"
-                  placeholder="Поиск по заметке или категории"
+                  placeholder={t("filters.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pf-input mt-2"
@@ -271,7 +273,7 @@ export default function OperationsPanel({
               </div>
               <div className="min-w-0">
                 <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                  С даты
+                  {t("filters.dateFrom")}
                 </label>
                 <input
                   type="date"
@@ -282,7 +284,7 @@ export default function OperationsPanel({
               </div>
               <div className="min-w-0">
                 <label className="text-xs uppercase tracking-wide text-gray-500 dark:text-[#a3a3a3]">
-                  По дату
+                  {t("filters.dateTo")}
                 </label>
                 <input
                   type="date"

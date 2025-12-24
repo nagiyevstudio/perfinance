@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   PieChart,
@@ -21,6 +21,7 @@ import MonthSelector from "../components/Dashboard/MonthSelector";
 import AnalyticsTotals from "../components/Analytics/AnalyticsTotals";
 import { analyticsApi, budgetApi } from "../services/api";
 import { formatCurrency, getCurrentMonth } from "../utils/format";
+import { getLocale, useI18n } from "../i18n";
 
 const FALLBACK_COLORS = [
   "#d27b30",
@@ -32,20 +33,29 @@ const FALLBACK_COLORS = [
   "#8b4715",
 ];
 
-const formatDayLabel = (date: string) =>
-  new Date(date).toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "short",
-  });
-
 export default function Analytics() {
+  const { t } = useI18n();
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
-  const [selectedYear, selectedMonthPart] = selectedMonth.split("-");
+  const [selectedYear, setSelectedYear] = useState(
+    () => selectedMonth.split("-")[0]
+  );
+  const [selectedMonthYear, selectedMonthPart] = selectedMonth.split("-");
   const selectedMonthIndex = Number(selectedMonthPart) - 1;
+  const locale = getLocale();
+  const formatDayLabel = (date: string) =>
+    new Date(date).toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+    });
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["analytics", selectedMonth],
     queryFn: () => analyticsApi.get(selectedMonth),
+  });
+
+  const { data: incomeYearsData } = useQuery({
+    queryKey: ["analytics-income-years"],
+    queryFn: () => analyticsApi.getIncomeYears(),
   });
 
   const { data: yearlyIncome, isLoading: isYearlyIncomeLoading } = useQuery({
@@ -57,6 +67,17 @@ export default function Analytics() {
     queryKey: ["budget", selectedMonth],
     queryFn: () => budgetApi.getBudget(selectedMonth),
   });
+
+  const incomeYears = incomeYearsData?.years ?? [];
+
+  useEffect(() => {
+    if (incomeYears.length === 0) {
+      return;
+    }
+    if (!incomeYears.includes(selectedYear)) {
+      setSelectedYear(incomeYears[0]);
+    }
+  }, [incomeYears, selectedYear]);
 
   const categoryData = analytics
     ? analytics.expensesByCategory.map((item, index) => ({
@@ -107,18 +128,18 @@ export default function Analytics() {
   const remainingDaysInMonth = (() => {
     const now = new Date();
     const daysInMonth = new Date(
-      Number(selectedYear),
+      Number(selectedMonthYear),
       selectedMonthIndex + 1,
       0
     ).getDate();
     if (
-      now.getFullYear() === Number(selectedYear) &&
+      now.getFullYear() === Number(selectedMonthYear) &&
       now.getMonth() === selectedMonthIndex
     ) {
       return Math.max(0, daysInMonth - now.getDate() + 1);
     }
     const selectedMonthStart = new Date(
-      Number(selectedYear),
+      Number(selectedMonthYear),
       selectedMonthIndex,
       1
     );
@@ -154,16 +175,16 @@ export default function Analytics() {
             "0"
           )}`;
           const amountMinor = monthlyIncomeMap?.get(monthKey) || 0;
-          return {
-            month: new Date(
-              Number(selectedYear),
-              index,
-              1
-            ).toLocaleDateString("ru-RU", { month: "short" }),
-            amount: amountMinor / 100,
-          };
-        });
-      })()
+            return {
+              month: new Date(
+                Number(selectedYear),
+                index,
+                1
+              ).toLocaleDateString(locale, { month: "short" }),
+              amount: amountMinor / 100,
+            };
+          });
+        })()
     : [];
   const hasMonthlyIncome = monthlyIncomeData.some((item) => item.amount > 0);
   const monthlyIncomeStats =
@@ -180,7 +201,7 @@ export default function Analytics() {
                 Number(selectedYear),
                 index,
                 1
-              ).toLocaleDateString("ru-RU", { month: "short" }),
+              ).toLocaleDateString(locale, { month: "short" }),
               amountMinor: monthlyIncomeMap.get(monthKey) || 0,
             };
           });
@@ -248,7 +269,7 @@ export default function Analytics() {
             </div>
           </>
         ) : !analytics ? (
-          <div className="text-center py-8">Нет данных для отображения</div>
+          <div className="text-center py-8">{t("analytics.empty")}</div>
         ) : (
           <>
             <div className="mb-6">
@@ -258,7 +279,7 @@ export default function Analytics() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-lg shadow">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
-                  Расходы по категориям
+                  {t("analytics.expensesByCategory")}
                 </h2>
                 {categoryData.length > 0 ? (
                   <>
@@ -270,7 +291,10 @@ export default function Analytics() {
                           cy="50%"
                           labelLine={false}
                           label={({ name, percentage }) =>
-                            `${name}: ${percentage.toFixed(1)}%`
+                            t("analytics.pieLabel", {
+                              name,
+                              percentage: percentage.toFixed(1),
+                            })
                           }
                           outerRadius={80}
                           fill="#d27b30"
@@ -322,14 +346,14 @@ export default function Analytics() {
                   </>
                 ) : (
                   <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-                    Нет данных о расходах
+                    {t("analytics.noExpenseData")}
                   </div>
                 )}
               </div>
 
               <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-lg shadow">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
-                  Расходы по дням
+                  {t("analytics.expensesByDay")}
                 </h2>
                 {dailyData.length > 0 ? (
                   <>
@@ -350,20 +374,24 @@ export default function Analytics() {
                           stroke="#b45309"
                           strokeDasharray="4 4"
                           label={{
-                            value: "Дневной лимит",
+                            value: t("analytics.dailyLimit"),
                             position: "insideTopRight",
                             fill: "#b45309",
                           }}
                         />
                       )}
-                      <Bar dataKey="amount" fill="#d27b30" name="Сумма (₼)" />
+                      <Bar
+                        dataKey="amount"
+                        fill="#d27b30"
+                        name={t("analytics.amountWithCurrency")}
+                      />
                     </BarChart>
                     </ResponsiveContainer>
                     {dailyStats && (
                       <div className="mt-4 space-y-2 text-sm">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-gray-500 dark:text-[#a3a3a3]">
-                            Максимум за день
+                            {t("analytics.maxDay")}
                           </span>
                           <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                             {dailyStats.max.date} ·{" "}
@@ -372,7 +400,7 @@ export default function Analytics() {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-gray-500 dark:text-[#a3a3a3]">
-                            Минимум за день
+                            {t("analytics.minDay")}
                           </span>
                           <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                             {dailyStats.min.date} ·{" "}
@@ -381,7 +409,7 @@ export default function Analytics() {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-gray-500 dark:text-[#a3a3a3]">
-                            Средний расход за день
+                            {t("analytics.averageDay")}
                           </span>
                           <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                             {formatCurrency(dailyStats.averageMinor)}
@@ -389,7 +417,7 @@ export default function Analytics() {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-gray-500 dark:text-[#a3a3a3]">
-                            Ожидаемый расход до конца месяца
+                            {t("analytics.expectedRemaining")}
                           </span>
                           <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                             {formatCurrency(expectedRemainingMinor || 0)}
@@ -400,7 +428,7 @@ export default function Analytics() {
                   </>
                 ) : (
                   <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-                    Нет данных о расходах
+                    {t("analytics.noExpenseData")}
                   </div>
                 )}
               </div>
@@ -427,14 +455,37 @@ export default function Analytics() {
               </>
             ) : yearlyIncome ? (
               <>
+                {incomeYears.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {incomeYears.map((year) => {
+                      const isActive = year === selectedYear;
+                      return (
+                        <button
+                          key={year}
+                          onClick={() => setSelectedYear(year)}
+                          className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#1a1a1a] ${
+                            isActive
+                              ? "border-emerald-600 bg-emerald-600 text-white"
+                              : "border-emerald-200 text-emerald-700 bg-emerald-50/60 hover:bg-emerald-100/70 dark:border-emerald-500/40 dark:text-emerald-200 dark:bg-emerald-500/10"
+                          }`}
+                          aria-pressed={isActive}
+                        >
+                          {year}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="mb-6">
                   <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-lg shadow">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb]">
-                        Доходы за {selectedYear}
+                        {t("analytics.incomeForYear", { year: selectedYear })}
                       </h2>
                       <span className="text-sm font-medium text-emerald-600">
-                        Итого: {formatCurrency(yearlyIncome.totalMinor)}
+                        {t("analytics.total", {
+                          value: formatCurrency(yearlyIncome.totalMinor),
+                        })}
                       </span>
                     </div>
                   </div>
@@ -443,7 +494,7 @@ export default function Analytics() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-lg shadow">
                     <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
-                      Доходы по категориям
+                      {t("analytics.incomeByCategory")}
                     </h2>
                     {yearlyIncomeCategoryData.length > 0 ? (
                       <>
@@ -455,7 +506,10 @@ export default function Analytics() {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percentage }) =>
-                                `${name}: ${percentage.toFixed(1)}%`
+                                t("analytics.pieLabel", {
+                                  name,
+                                  percentage: percentage.toFixed(1),
+                                })
                               }
                               outerRadius={80}
                               fill="#10b981"
@@ -507,14 +561,14 @@ export default function Analytics() {
                       </>
                     ) : (
                       <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-                        Нет данных о доходах
+                        {t("analytics.noIncomeData")}
                       </div>
                     )}
                   </div>
 
                   <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-lg shadow">
                     <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb] mb-4">
-                      Доходы по месяцам
+                      {t("analytics.incomeByMonth")}
                     </h2>
                     {hasMonthlyIncome ? (
                       <>
@@ -534,7 +588,7 @@ export default function Analytics() {
                               dataKey="amount"
                               stroke="#10b981"
                               strokeWidth={2}
-                              name="Сумма"
+                              name={t("analytics.amount")}
                               dot={{ r: 3 }}
                             />
                           </LineChart>
@@ -543,7 +597,7 @@ export default function Analytics() {
                           <div className="mt-4 space-y-2 text-sm">
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-gray-500 dark:text-[#a3a3a3]">
-                                Максимум за месяц
+                                {t("analytics.maxMonth")}
                               </span>
                               <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                                 {monthlyIncomeStats.max.month} ·{" "}
@@ -552,7 +606,7 @@ export default function Analytics() {
                             </div>
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-gray-500 dark:text-[#a3a3a3]">
-                                Минимум за месяц
+                                {t("analytics.minMonth")}
                               </span>
                               <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                                 {monthlyIncomeStats.min.month} ·{" "}
@@ -561,7 +615,7 @@ export default function Analytics() {
                             </div>
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-gray-500 dark:text-[#a3a3a3]">
-                                Средний за год месячный доход
+                                {t("analytics.averageMonth")}
                               </span>
                               <span className="font-medium text-gray-900 dark:text-[#e5e7eb]">
                                 {formatCurrency(monthlyIncomeStats.averageMinor)}
@@ -572,7 +626,7 @@ export default function Analytics() {
                       </>
                     ) : (
                       <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-                        Нет данных о доходах
+                        {t("analytics.noIncomeData")}
                       </div>
                     )}
                   </div>
@@ -580,7 +634,7 @@ export default function Analytics() {
               </>
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-                Нет данных о доходах за год
+                {t("analytics.noIncomeYear")}
               </div>
             )}
           </>

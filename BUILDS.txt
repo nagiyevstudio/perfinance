@@ -7,6 +7,14 @@ Series: 1.0.x
 - If a release includes multiple tasks, increase the patch version by the total count of tasks.
 - Example: 5 tasks in one release => patch version +5.
 
+## 1.0.014
+- Date: 2025-12-24
+- Status: released
+- Changes:
+  1. Show app version in Settings.
+  2. Show user name only in the header (no email/role).
+  3. Fix manat symbol in the Settings currency line.
+
 ## 1.0.011
 - Date: 2025-12-23
 - Status: released

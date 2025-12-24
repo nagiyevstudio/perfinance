@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/common/Layout';
 import MaterialIcon from '../components/common/MaterialIcon';
 import { categoriesApi, Category, CreateCategoryRequest } from '../services/api';
+import { useI18n } from '../i18n';
 
 const actionBase =
   'inline-flex items-center gap-2 h-10 px-3 rounded-full text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d27b30] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-[#1a1a1a]';
@@ -27,6 +28,7 @@ const tabIncomeBase =
 const tabIncomeActive = 'bg-emerald-600 text-white border-emerald-600';
 
 export default function Categories() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -83,7 +85,7 @@ export default function Categories() {
   };
 
   const handleArchive = (id: string) => {
-    if (confirm('Архивировать эту категорию?')) {
+    if (confirm(t('categories.archiveConfirm'))) {
       archiveMutation.mutate(id);
     }
   };
@@ -101,7 +103,7 @@ export default function Categories() {
               aria-pressed={activeTab === 'expense'}
             >
               <MaterialIcon name="expense" className="h-4 w-4" />
-              Расходы
+              {t('categories.expenses')}
             </button>
             <button
               onClick={() => setActiveTab('income')}
@@ -109,7 +111,7 @@ export default function Categories() {
               aria-pressed={activeTab === 'income'}
             >
               <MaterialIcon name="income" className="h-4 w-4" />
-              Доходы
+              {t('categories.income')}
             </button>
           </div>
         </div>
@@ -117,22 +119,26 @@ export default function Categories() {
         <div className="bg-white dark:bg-[#1a1a1a] shadow rounded-lg p-6 text-left">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-lg font-medium text-gray-900 dark:text-[#e5e7eb]">
-              Категории {activeTab === 'expense' ? 'расходов' : 'доходов'}
+              {activeTab === 'expense'
+                ? t('categories.titleExpense')
+                : t('categories.titleIncome')}
             </h2>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className={`${showAddForm ? actionNeutral : primaryButton} h-10 w-10 justify-center sm:w-auto sm:px-4`}
-              aria-label={showAddForm ? 'Отменить' : 'Добавить категорию'}
+              aria-label={
+                showAddForm ? t('common.cancel') : t('categories.addCategory')
+              }
             >
               {showAddForm ? (
                 <>
                   <MaterialIcon name="close" className="h-4 w-4" />
-                  <span className="hidden sm:inline">Отмена</span>
+                  <span className="hidden sm:inline">{t('common.cancel')}</span>
                 </>
               ) : (
                 <>
                   <MaterialIcon name="add" className="h-5 w-5" />
-                  <span className="hidden sm:inline">Добавить категорию</span>
+                  <span className="hidden sm:inline">{t('categories.addCategory')}</span>
                 </>
               )}
             </button>
@@ -143,7 +149,7 @@ export default function Categories() {
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Название категории"
+                  placeholder={t('categories.namePlaceholder')}
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   className="pf-input flex-1"
@@ -160,7 +166,7 @@ export default function Categories() {
                   className={`${actionConfirm} disabled:opacity-50`}
                 >
                   <MaterialIcon name="check" className="h-4 w-4" />
-                  Сохранить
+                  {t('common.save')}
                 </button>
               </div>
             </div>
@@ -174,7 +180,7 @@ export default function Categories() {
             </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-[#a3a3a3]">
-              Нет категорий. Добавьте первую категорию.
+              {t('categories.empty')}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -217,6 +223,7 @@ function CategoryCard({
   onCancelEdit,
   onArchive,
 }: CategoryCardProps) {
+  const { t } = useI18n();
   const [name, setName] = useState(category.name);
   const [color, setColor] = useState(category.color || '#d27b30');
 
@@ -250,7 +257,7 @@ function CategoryCard({
             disabled={isSaving || !name.trim()}
           >
             <MaterialIcon name="check" className="h-4 w-4" />
-            {isSaving ? 'Сохранение...' : 'Сохранить'}
+            {isSaving ? t('common.saving') : t('common.save')}
           </button>
           <button
             onClick={onCancelEdit}
@@ -258,7 +265,7 @@ function CategoryCard({
             disabled={isSaving}
           >
             <MaterialIcon name="close" className="h-4 w-4" />
-            Отмена
+            {t('common.cancel')}
           </button>
         </div>
       </div>
@@ -284,16 +291,16 @@ function CategoryCard({
           <button
             onClick={onStartEdit}
             className={actionEditIcon}
-            aria-label="Изменить"
-            title="Изменить"
+            aria-label={t('common.edit')}
+            title={t('common.edit')}
           >
             <MaterialIcon name="edit" className="h-4 w-4" />
           </button>
           <button
             onClick={onArchive}
             className={actionArchiveIcon}
-            aria-label="Архивировать"
-            title="Архивировать"
+            aria-label={t('categories.archive')}
+            title={t('categories.archive')}
           >
             <MaterialIcon name="archive" className="h-4 w-4" />
           </button>

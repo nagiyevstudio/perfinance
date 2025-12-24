@@ -21,6 +21,7 @@ $userId = requireAuth();
 
 $month = $_GET['month'] ?? null;
 $year = $_GET['year'] ?? null;
+$years = $_GET['years'] ?? null;
 
 try {
     $pdo = Database::getPDO();
@@ -112,6 +113,27 @@ try {
             ],
             'expensesByCategory' => $categoryData,
             'expensesByDay' => $dailyData
+        ]);
+    }
+
+    if ($years === 'income') {
+        $incomeYearsSql = "
+            SELECT DISTINCT YEAR(o.date) as year
+            FROM operations o
+            WHERE o.user_id = ?
+                AND o.type = 'income'
+            ORDER BY year DESC
+        ";
+
+        $stmt = $pdo->prepare($incomeYearsSql);
+        $stmt->execute([$userId]);
+        $incomeYears = array_map(
+            'strval',
+            array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'year')
+        );
+
+        sendSuccess([
+            'years' => $incomeYears
         ]);
     }
 

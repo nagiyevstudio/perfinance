@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../store/auth';
 import { authApi } from '../services/api';
+import { useI18n } from '../i18n';
 
-const loginSchema = z.object({
-  email: z.string().email('Некорректный email'),
-  password: z.string().min(8, 'Пароль должен содержать минимум 8 символов'),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = {
+  email: string;
+  password: string;
+};
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = `${t('login.title')} · ${t('common.appName')}`;
+  }, [t]);
+
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t('login.validation.emailInvalid')),
+        password: z.string().min(8, t('login.validation.passwordMin')),
+      }),
+    [t]
+  );
 
   const {
     register,
@@ -36,7 +49,7 @@ export default function Login() {
       await new Promise(resolve => setTimeout(resolve, 100));
       navigate('/');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Ошибка входа');
+      setError(err instanceof Error ? err.message : t('login.error'));
       setIsLoading(false);
     }
   };
@@ -46,10 +59,10 @@ export default function Login() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-[#e5e7eb]">
-            Вход в систему
+            {t('login.title')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-[#a3a3a3]">
-            Регистрация закрыта
+            {t('login.registrationClosed')}
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -61,14 +74,14 @@ export default function Login() {
           <div className="space-y-3">
             <div>
               <label htmlFor="email" className="sr-only">
-                Email
+                {t('login.emailLabel')}
               </label>
               <input
                 {...register('email')}
                 type="email"
                 autoComplete="email"
                 className="pf-input"
-                placeholder="Email адрес"
+                placeholder={t('login.emailPlaceholder')}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
@@ -76,14 +89,14 @@ export default function Login() {
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
-                Пароль
+                {t('login.passwordLabel')}
               </label>
               <input
                 {...register('password')}
                 type="password"
                 autoComplete="current-password"
                 className="pf-input"
-                placeholder="Пароль"
+                placeholder={t('login.passwordPlaceholder')}
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
@@ -97,7 +110,7 @@ export default function Login() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#d27b30] hover:bg-[#b56726] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#d27b30] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Вход...' : 'Войти'}
+              {isLoading ? t('login.signingIn') : t('login.submit')}
             </button>
           </div>
         </form>

@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/common/Layout';
-import MonthSelector from '../components/Dashboard/MonthSelector';
 import BudgetCard from '../components/Dashboard/BudgetCard';
 import DailyLimitCard from '../components/Dashboard/DailyLimitCard';
+import MonthlyExpenseCard from '../components/Dashboard/MonthlyExpenseCard';
 import AnalyticsTotals from '../components/Analytics/AnalyticsTotals';
 import OperationsPanel from '../components/Operations/OperationsPanel';
 import OperationForm from '../components/Dashboard/OperationForm';
 import { getCurrentMonth } from '../utils/format';
+import { useI18n } from '../i18n';
 import {
   budgetApi,
   analyticsApi,
@@ -19,7 +20,8 @@ import {
 } from '../services/api';
 
 export default function Dashboard() {
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
+  const { t } = useI18n();
+  const selectedMonth = getCurrentMonth();
   const [showOperationForm, setShowOperationForm] = useState(false);
   const [editingOperation, setEditingOperation] = useState<Operation | null>(null);
   const queryClient = useQueryClient();
@@ -117,7 +119,7 @@ export default function Dashboard() {
 
 
   const handleSaveBudget = () => {
-    const amount = prompt('Введите бюджет на месяц (₼):');
+    const amount = prompt(t('dashboard.budgetPrompt', { currency: '₼' }));
     if (amount) {
       const amountMinor = Math.round(parseFloat(amount) * 100);
       if (!isNaN(amountMinor) && amountMinor >= 0) {
@@ -128,6 +130,16 @@ export default function Dashboard() {
 
   const categories = categoriesData?.categories || [];
   const operations = operationsData?.operations || [];
+  const expenseMinor = analyticsData?.totals?.expenseMinor ?? budget?.expenseSum ?? 0;
+  const incomeMinor = analyticsData?.totals?.incomeMinor ?? budget?.incomeSum ?? 0;
+  const expensesByDay = analyticsData?.expensesByDay ?? [];
+  const averageDailyMinor = expensesByDay.length
+    ? Math.round(
+        expensesByDay.reduce((sum, item) => sum + item.totalMinor, 0) / expensesByDay.length
+      )
+    : 0;
+  const remainingDays = budget?.daysLeft ?? 0;
+  const expectedRemainingMinor = averageDailyMinor * Math.max(remainingDays, 0);
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const todayOperations = operations.filter((operation) => operation.date.slice(0, 10) === todayKey);
@@ -142,9 +154,7 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8">
-        <MonthSelector selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <BudgetCard
             planned={budget?.planned || 0}
             spent={budget?.expenseSum || 0}
@@ -160,6 +170,13 @@ export default function Dashboard() {
             isOverBudget={budget?.isOverBudget || false}
             isLoading={budgetLoading}
           />
+          <MonthlyExpenseCard
+            expenseMinor={expenseMinor}
+            incomeMinor={incomeMinor}
+            averageDailyMinor={averageDailyMinor}
+            expectedRemainingMinor={expectedRemainingMinor}
+            isLoading={budgetLoading || analyticsLoading}
+          />
         </div>
 
         <div className="mb-6">
@@ -168,7 +185,7 @@ export default function Dashboard() {
 
         {operationsLoading && (
           <div className="text-center py-6 text-sm text-gray-500 dark:text-[#a3a3a3]">
-            Обновляем операции для расчета лимита...
+            {t('dashboard.refreshOperations')}
           </div>
         )}
 
