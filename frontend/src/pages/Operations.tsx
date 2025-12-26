@@ -11,7 +11,6 @@ import {
   analyticsApi,
   operationsApi,
   CreateOperationRequest,
-  OperationsListResponse,
   Operation,
 } from '../services/api';
 

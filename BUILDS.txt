@@ -7,6 +7,17 @@ Series: 1.0.x
 - If a release includes multiple tasks, increase the patch version by the total count of tasks.
 - Example: 5 tasks in one release => patch version +5.
 
+## 1.0.025
+- Date: 2025-12-26
+- Status: released
+- Changes:
+  1. Улучшение pie charts: преобразование в donut charts с анимациями и hover эффектами
+  2. Улучшенный layout для аналитики: pie и line charts на всю ширину на десктопе
+  3. Donut charts с легендой справа на десктопе, вертикально на мобиле
+  4. Добавлена возможность выбора категорий для отображения в line chart "Доходы по категориям по годам"
+  5. Улучшен tooltip для pie charts с поддержкой темной темы
+  6. Добавлены правила фул-пуша в DEPLOY.md
+
 ## 1.0.024
 - Date: 2025-12-25
 - Status: released

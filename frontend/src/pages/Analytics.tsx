@@ -489,7 +489,7 @@ export default function Analytics() {
                                 dataKey="value"
                                 animationBegin={0}
                                 animationDuration={800}
-                                activeShape={{ outerRadius: 88, innerRadius: 60 }}
+                                activeShape={{ outerRadius: 88, innerRadius: 60 } as any}
                               >
                                 {categoryData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -729,7 +729,7 @@ export default function Analytics() {
                                 dataKey="value"
                                 animationBegin={0}
                                 animationDuration={800}
-                                activeShape={{ outerRadius: 88, innerRadius: 60 }}
+                                activeShape={{ outerRadius: 88, innerRadius: 60 } as any}
                               >
                                 {yearlyIncomeCategoryData.map((entry, index) => (
                                   <Cell key={`income-cell-${index}`} fill={entry.color} />
@@ -954,7 +954,7 @@ export default function Analytics() {
                                 dataKey="value"
                                 animationBegin={0}
                                 animationDuration={800}
-                                activeShape={{ outerRadius: 88, innerRadius: 60 }}
+                                activeShape={{ outerRadius: 88, innerRadius: 60 } as any}
                               >
                                 {overallCategoryData.map((entry, index) => (
                                   <Cell key={`overall-cell-${index}`} fill={entry.color} />

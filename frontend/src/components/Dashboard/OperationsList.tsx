@@ -26,20 +26,6 @@ const formatTime = (date: string): string => {
   }
 };
 
-const formatShortDate = (date: string): string => {
-  if (!date) return '';
-  try {
-    const parsed = new Date(date.replace(' ', 'T'));
-    if (Number.isNaN(parsed.getTime())) return '';
-    return parsed.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'short',
-    });
-  } catch {
-    return '';
-  }
-};
-
 interface OperationsListProps {
   operations: Operation[];
   onEdit: (operation: Operation) => void;
