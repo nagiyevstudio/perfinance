@@ -7,6 +7,14 @@ import { getCurrentMonth } from '../utils/format';
 import { applyTheme, getStoredTheme, setStoredTheme, type ThemePreference } from '../utils/theme';
 import { useI18n } from '../i18n';
 
+// Проверка на iOS Safari
+const isIOSSafari = () => {
+  const ua = window.navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  const webkit = /WebKit/.test(ua);
+  return iOS && webkit && !/CriOS|FxiOS|OPiOS/.test(ua);
+};
+
 export default function Settings() {
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useI18n();
@@ -73,6 +81,19 @@ export default function Settings() {
       alert(t('settings.exportError'));
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  // Исправление для Safari iOS: убираем overflow с body при фокусе на date input
+  const handleMonthInputFocus = () => {
+    if (isIOSSafari()) {
+      document.body.style.overflow = 'visible';
+    }
+  };
+
+  const handleMonthInputBlur = () => {
+    if (isIOSSafari()) {
+      document.body.style.overflow = '';
     }
   };
 
@@ -143,6 +164,8 @@ export default function Settings() {
                     value={exportMonth}
                     onChange={(e) => setExportMonth(e.target.value)}
                     className="pf-input w-full sm:w-auto max-w-xs"
+                    onFocus={handleMonthInputFocus}
+                    onBlur={handleMonthInputBlur}
                   />
                 </div>
               )}

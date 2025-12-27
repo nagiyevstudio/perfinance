@@ -7,6 +7,16 @@ Series: 1.0.x
 - If a release includes multiple tasks, increase the patch version by the total count of tasks.
 - Example: 5 tasks in one release => patch version +5.
 
+## 1.0.031
+- Date: 2025-12-27
+- Status: released
+- Changes:
+  1. Переименование проекта PerFinance → PHI во всех файлах и конфигурациях
+  2. Обновление названия приложения в локализациях и manifest.json
+  3. Замена логотипа на новый PHI логотип
+  4. Исправление проблемы с date pickers в Safari iOS (выходят за границы модалки)
+  5. Обновление всех иконок и favicon файлов
+
 ## 1.0.030
 - Date: 2025-12-26
 - Status: released

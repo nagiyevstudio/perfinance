@@ -1,4 +1,4 @@
--- Full database schema for PerFinance application
+-- Full database schema for PHI application
 -- MySQL database schema
 -- Date: 2025-12-21
 

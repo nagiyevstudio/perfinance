@@ -6,6 +6,14 @@ import { Category, CreateOperationRequest } from '../../services/api';
 import MaterialIcon from '../common/MaterialIcon';
 import { useI18n } from '../../i18n';
 
+// Проверка на iOS Safari
+const isIOSSafari = () => {
+  const ua = window.navigator.userAgent;
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  const webkit = /WebKit/.test(ua);
+  return iOS && webkit && !/CriOS|FxiOS|OPiOS/.test(ua);
+};
+
 type OperationFormData = {
   type: 'expense' | 'income';
   amountMinor: number;
@@ -238,9 +246,26 @@ export default function OperationForm({
   };
 
   const currentFilteredCategories = categories.filter((cat) => cat.type === selectedType);
+  const modalContainerRef = useRef<HTMLDivElement>(null);
+
+  // Исправление для Safari iOS: убираем overflow при фокусе на date input
+  const handleDateInputFocus = () => {
+    if (isIOSSafari() && modalContainerRef.current) {
+      modalContainerRef.current.style.overflow = 'visible';
+    }
+  };
+
+  const handleDateInputBlur = () => {
+    if (isIOSSafari() && modalContainerRef.current) {
+      modalContainerRef.current.style.overflow = 'auto';
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-[#120c08]/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+    <div 
+      ref={modalContainerRef}
+      className="fixed inset-0 bg-[#120c08]/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50"
+    >
       <div className="relative top-10 mx-auto w-[92vw] max-w-lg p-6 sm:p-7 border shadow-xl rounded-3xl bg-white dark:bg-[#1a1a1a]">
         <button
           type="button"
@@ -369,6 +394,8 @@ export default function OperationForm({
               type="datetime-local"
               {...register('date')}
               className="pf-input mt-1"
+              onFocus={handleDateInputFocus}
+              onBlur={handleDateInputBlur}
             />
             {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date.message}</p>}
           </div>

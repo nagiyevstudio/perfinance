@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
 import MaterialIcon from './MaterialIcon';
-import logoUrl from '../../assets/perfin-logo.png';
+import logoUrl from '../../assets/logo.png';
 import { useI18n } from '../../i18n';
 
 interface LayoutProps {

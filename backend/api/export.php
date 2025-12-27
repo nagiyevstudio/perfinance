@@ -85,12 +85,12 @@ try {
     
     if ($format === 'json') {
         header('Content-Type: application/json; charset=utf-8');
-        header('Content-Disposition: attachment; filename="perfinance_export_' . ($month ?? 'all') . '_' . date('Y-m-d') . '.json"');
+        header('Content-Disposition: attachment; filename="phi_export_' . ($month ?? 'all') . '_' . date('Y-m-d') . '.json"');
         echo json_encode($exportData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     } else {
         // CSV format
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="perfinance_export_' . ($month ?? 'all') . '_' . date('Y-m-d') . '.csv"');
+        header('Content-Disposition: attachment; filename="phi_export_' . ($month ?? 'all') . '_' . date('Y-m-d') . '.csv"');
         
         $output = fopen('php://output', 'w');
         

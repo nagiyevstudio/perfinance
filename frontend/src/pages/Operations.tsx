@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/common/Layout';
 import MonthSelector from '../components/Dashboard/MonthSelector';
@@ -19,46 +19,14 @@ export default function Operations() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
   const [showOperationForm, setShowOperationForm] = useState(false);
   const [editingOperation, setEditingOperation] = useState<Operation | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allOperations, setAllOperations] = useState<Operation[]>([]);
-  const pageSize = 50;
 
   const queryClient = useQueryClient();
 
-  const { data: operationsData, isLoading: operationsLoading, isFetching } = useQuery({
-    queryKey: ['operations', selectedMonth, currentPage],
-    queryFn: () => operationsApi.list({ month: selectedMonth, page: currentPage, pageSize }),
+  // Загружаем все операции за месяц сразу (pageSize = 10000 для загрузки всех)
+  const { data: operationsData, isLoading: operationsLoading } = useQuery({
+    queryKey: ['operations', selectedMonth],
+    queryFn: () => operationsApi.list({ month: selectedMonth, page: 1, pageSize: 10000 }),
   });
-
-  // Сбрасываем операции при смене месяца
-  useEffect(() => {
-    setAllOperations([]);
-    setCurrentPage(1);
-  }, [selectedMonth]);
-
-  // Объединяем операции при загрузке новой страницы
-  useEffect(() => {
-    if (operationsData?.operations) {
-      if (currentPage === 1) {
-        setAllOperations(operationsData.operations);
-      } else {
-        setAllOperations((prev) => {
-          // Проверяем, чтобы не добавлять дубликаты
-          const existingIds = new Set(prev.map(op => op.id));
-          const newOperations = operationsData.operations.filter(op => !existingIds.has(op.id));
-          return [...prev, ...newOperations];
-        });
-      }
-    }
-  }, [operationsData, currentPage]);
-
-  const handleLoadMore = () => {
-    setCurrentPage((prev) => prev + 1);
-  };
-
-  const hasMore = operationsData?.pagination
-    ? currentPage < operationsData.pagination.totalPages
-    : false;
 
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['analytics', selectedMonth],
@@ -74,8 +42,6 @@ export default function Operations() {
     mutationFn: (data: CreateOperationRequest) =>
       editingOperation ? operationsApi.update(editingOperation.id, data) : operationsApi.create(data),
     onSuccess: () => {
-      setAllOperations([]);
-      setCurrentPage(1);
       queryClient.invalidateQueries({ queryKey: ['operations', selectedMonth] });
       queryClient.invalidateQueries({ queryKey: ['operations'] });
       queryClient.invalidateQueries({ queryKey: ['budget', selectedMonth] });
@@ -88,8 +54,7 @@ export default function Operations() {
 
   const deleteOperationMutation = useMutation({
     mutationFn: (id: string) => operationsApi.delete(id),
-    onSuccess: (_, id) => {
-      setAllOperations((prev) => prev.filter((op) => op.id !== id));
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations', selectedMonth] });
       queryClient.invalidateQueries({ queryKey: ['operations'] });
       queryClient.invalidateQueries({ queryKey: ['budget', selectedMonth] });
@@ -118,7 +83,7 @@ export default function Operations() {
 
 
   const categories = categoriesData?.categories || [];
-  const operations = allOperations;
+  const operations = operationsData?.operations || [];
 
   return (
     <Layout>
@@ -134,18 +99,6 @@ export default function Operations() {
           onEdit={handleEditOperation}
           onDelete={handleDeleteOperation}
         />
-
-        {hasMore && (
-          <div className="mt-6">
-            <button
-              onClick={handleLoadMore}
-              disabled={isFetching}
-              className="w-full px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#1f1f1f] hover:bg-gray-200 dark:hover:bg-[#252525] rounded-lg border border-gray-200 dark:border-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isFetching ? 'Загрузка...' : 'Загрузить еще'}
-            </button>
-          </div>
-        )}
 
         {showOperationForm && (
           <OperationForm

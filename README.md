@@ -1,4 +1,4 @@
-# PerFinance - Веб-приложение учета расходов/доходов
+# PHI - Веб-приложение учета расходов/доходов
 
 Веб-приложение для учета расходов и доходов с контролем месячного бюджета и расчетом дневного лимита.
 
@@ -23,7 +23,7 @@
 ## Структура проекта
 
 ```
-PerFinance/
+PHI/
 ├── backend/              # PHP Backend API
 │   ├── api/             # API endpoints
 │   ├── config/          # Конфигурация
@@ -66,7 +66,7 @@ cp .env.example .env
 ```env
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=perfinance
+DB_NAME=phi
 DB_USER=root
 DB_PASSWORD=your_password
 
@@ -76,7 +76,7 @@ JWT_SECRET=your-very-secret-key-change-in-production
 3. Создайте базу данных MySQL:
 
 ```sql
-CREATE DATABASE perfinance CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE phi CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 4. Выполните миграции:
@@ -88,7 +88,7 @@ php utils/migrate.php
 Или выполните полную схему:
 
 ```bash
-mysql -u root -p perfinance < ../database/schema.sql
+mysql -u root -p phi < ../database/schema.sql
 ```
 
 5. Настройте веб-сервер (Apache/Nginx) для обслуживания `backend/` через точку входа `index.php`.

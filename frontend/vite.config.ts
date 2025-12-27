@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { readFileSync } from 'fs'
 import { vitePluginFtp } from './vite-plugin-ftp'
+
+// Читаем версию из package.json
+const packageJson = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'))
+const appVersion = packageJson.version || '1.0.0'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,7 +16,7 @@ export default defineConfig({
     vitePluginFtp('../secrets/ftp.json'),
   ],
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    __APP_VERSION__: JSON.stringify(appVersion),
   },
   resolve: {
     alias: {
